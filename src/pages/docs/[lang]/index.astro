@@ -1,13 +1,16 @@
 ---
+import { LANGS, type Lang, START_PAGE } from "../../../config/i18n";
+
+// Generate static paths for all supported languages
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+// Resolve and redirect to the proper language start page
 const { lang } = Astro.params as { lang?: string };
-const supported = new Set(["en", "zh"]);
-const safeLang = supported.has(lang || "") ? (lang as "en" | "zh") : "en";
-
-const START_PAGE: Record<"en" | "zh", string> = {
-  en: "/docs/en/src/beginner/beginner.html",
-  zh: "/docs/zh/src/beginner/beginner.html",
-};
-
+const safeLang: Lang = LANGS.includes((lang as Lang) || ("" as Lang))
+  ? (lang as Lang)
+  : "en";
 const target = START_PAGE[safeLang];
 Astro.redirect(target);
 ---
@@ -23,4 +26,3 @@ Astro.redirect(target);
     <p>Redirecting to <a href={target}>{safeLang.toUpperCase()} docs</a>…</p>
   </body>
 </html>
-
