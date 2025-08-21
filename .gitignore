@@ -5,10 +5,14 @@ dist/
 
 # Python / Jupyter Book
 .venv/
+venv
 __pycache__/
 docs/_build/
+docs/en/_build/
+docs/zh/_build/
+docs/en/src/
+docs/zh/src/
 public/docs/
 
 # MacOS
 .DS_Store
-

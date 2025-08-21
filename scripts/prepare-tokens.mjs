@@ -10,10 +10,16 @@ async function main() {
     const header = '/* Auto-synced from src/styles/tokens.css during build. */\n'
     await writeFile(dest, header + css, 'utf8')
     console.log(`Synced design tokens: ${src} -> ${dest}`)
+    // Ensure favicon is available for Jupyter Book too
+    const favSrc = 'public/favicon.svg'
+    const favDst = 'docs/_static/favicon.svg'
+    await mkdir(dirname(favDst), { recursive: true })
+    const fav = await readFile(favSrc)
+    await writeFile(favDst, fav)
+    console.log(`Copied favicon: ${favSrc} -> ${favDst}`)
   } catch (err) {
     console.warn('Skipping token sync:', err?.message)
   }
 }
 
 main()
-

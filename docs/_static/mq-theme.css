@@ -34,3 +34,12 @@ html[data-theme="light"], :root {
 /* Footer */
 .mq-footer { color: var(--mq-text-muted); }
 
+/* Minimal grid to support raw HTML blocks copied from upstream */
+.row { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; margin: 1rem 0; }
+@media (max-width: 960px) { .row { grid-template-columns: 1fr; } }
+.col-md-6 { display: contents; }
+.doc-article-list { display: grid; gap: 1rem; }
+.doc-article-item { border: 1px solid var(--sb-border); border-radius: var(--mq-radius); background: var(--sb-surface-2); padding: 1rem; }
+.doc-article-item .article-link { text-decoration: none; color: inherit; }
+.doc-article-head { font-weight: 700; margin-bottom: .25rem; }
+.doc-article-desc { color: var(--sb-foreground-muted); }

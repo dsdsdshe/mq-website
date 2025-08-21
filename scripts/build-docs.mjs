@@ -16,16 +16,22 @@ async function exists(p) {
   try { await stat(p); return true } catch { return false }
 }
 
-async function main() {
-  // Sync design tokens first so docs use latest variables
-  await run('node', ['scripts/prepare-tokens.mjs'])
-  await run('jupyter-book', ['build', 'docs'])
-  const src = resolve('docs/_build/html')
-  const dst = resolve('public/docs')
+async function buildOne(lang) {
+  const proj = resolve(`docs/${lang}`)
+  await run('jupyter-book', ['build', proj])
+  const src = resolve(`docs/${lang}/_build/html`)
+  const dst = resolve(`public/docs/${lang}`)
   if (await exists(dst)) await rm(dst, { recursive: true, force: true })
   await mkdir(dst, { recursive: true })
   await cp(src, dst, { recursive: true })
-  console.log(`Copied Jupyter Book → ${dst}`)
+  console.log(`Copied ${lang} book → ${dst}`)
+}
+
+async function main() {
+  // Sync design tokens first so docs use latest variables
+  await run('node', ['scripts/prepare-tokens.mjs'])
+  await buildOne('en')
+  await buildOne('zh')
 }
 
 main().catch((err) => {

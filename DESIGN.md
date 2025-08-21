@@ -12,7 +12,7 @@ This repository hosts both the MindQuantum website (Astro) and the documentation
 ## Architecture
 
 - Astro site at repo root. Static output in `dist/`.
-- Jupyter Book project in `docs/`. Build output goes into `public/docs`, which Astro serves as static assets at `/docs/`.
+- Two Jupyter Book projects in `docs/en` and `docs/zh`. Build outputs go into `public/docs/en` and `public/docs/zh`, which Astro serves at `/docs/en/` and `/docs/zh/`.
 - GitHub Actions flow builds Jupyter Book first, then Astro, and deploys the combined `dist/`.
 
 ## Theming Strategy
@@ -26,7 +26,8 @@ This approach avoids maintaining a heavy bespoke Sphinx theme while still achiev
 ## Content Sourcing
 
 - The build does not depend on external repositories.
-- A helper script `scripts/sync_mindspore_docs.py` can copy tutorial content from a local clone of `mindspore/docs` into `docs/content/` when needed. This lets you iterate locally while keeping CI deterministic.
+- Tutorials: `scripts/sync_mindquantum_from_msdocs.py` copies MindQuantum tutorial sources from a local `mindspore/docs` clone (`docs/mindquantum/docs/source_en` and `source_zh_cn`) into `docs/en/src` and `docs/zh/src`.
+- API: `scripts/sync_mindquantum_api.py` copies API `.rst` sources from a local `mindquantum` clone (`docs/api_python_en` and `docs/api_python`) into the language-specific `src/` folders.
 
 ## Deployment
 
@@ -38,4 +39,3 @@ This approach avoids maintaining a heavy bespoke Sphinx theme while still achiev
 - Add dedicated API reference via Sphinx autodoc in `docs/` and expose under `/docs/api/`.
 - Add language switcher and versioned docs (e.g., by building multiple books into `public/docs/vX/`).
 - Replace the simple CSS stack with Tailwind + PostCSS in Astro if desired; tokens remain the source of truth.
-
