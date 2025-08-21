@@ -1,8 +1,7 @@
 # Jupyter Book config (English)
 
-project:
-  name: MindQuantum Docs (EN)
-  description: Tutorials and API reference for MindQuantum (English)
+title: MindQuantum Docs (EN)
+description: Tutorials and API reference for MindQuantum (English)
 
 parse:
   myst_enable_extensions:

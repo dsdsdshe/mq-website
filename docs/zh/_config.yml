@@ -1,8 +1,7 @@
 # Jupyter Book config (Chinese)
 
-project:
-  name: MindQuantum 文档 (中文)
-  description: MindQuantum 教程与 API 文档（中文）
+title: MindQuantum 文档 (中文)
+description: MindQuantum 教程与 API 文档（中文）
 
 parse:
   myst_enable_extensions:
