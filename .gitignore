@@ -1,0 +1,14 @@
+# Node
+node_modules/
+.astro/
+dist/
+
+# Python / Jupyter Book
+.venv/
+__pycache__/
+docs/_build/
+public/docs/
+
+# MacOS
+.DS_Store
+

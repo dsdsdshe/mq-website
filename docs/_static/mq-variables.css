@@ -1,0 +1,17 @@
+/* Auto-synced from src/styles/tokens.css during build. */
+:root{
+  --mq-primary: oklch(61% 0.17 260);
+  --mq-primary-contrast: #ffffff;
+  --mq-bg: oklch(99% 0 0);
+  --mq-surface: oklch(98% 0.01 240);
+  --mq-surface-2: oklch(97% 0.01 240);
+  --mq-border: color-mix(in oklab, var(--mq-text-muted), transparent 65%);
+  --mq-text: oklch(27% 0.02 250);
+  --mq-text-muted: oklch(45% 0.02 250);
+  --mq-page-max: 1200px;
+  --mq-radius: 12px;
+  --mq-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px rgba(0,0,0,.06);
+  --mq-font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --mq-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+

@@ -1,0 +1,13 @@
+html { color-scheme: light; }
+:root { font-family: var(--mq-font-sans); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--mq-bg); color: var(--mq-text); }
+img { max-width: 100%; height: auto; }
+pre, code, kbd, samp { font-family: var(--mq-font-mono); }
+a { color: var(--mq-primary); }
+
+/* Prose */
+.prose { line-height: 1.65; }
+.prose h1, .prose h2, .prose h3 { line-height: 1.2; }
+.prose h2 { margin-top: 2rem; }
+

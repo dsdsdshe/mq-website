@@ -1,0 +1,20 @@
+{
+  "name": "mindquantum-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.14"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/prepare-tokens.mjs && astro build",
+    "preview": "astro preview",
+    "build:docs": "node scripts/build-docs.mjs",
+    "build:site": "astro build",
+    "build:all": "npm run build:docs && npm run build:site"
+  },
+  "dependencies": {
+    "astro": "^4.10.0"
+  }
+}

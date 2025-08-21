@@ -1,0 +1,43 @@
+# Jupyter Book configuration for MindQuantum docs
+
+project:
+  name: MindQuantum Docs
+  description: Tutorials and API reference for MindQuantum
+
+parse:
+  myst_enable_extensions:
+    - deflist
+    - colon_fence
+    - dollarmath
+    - linkify
+
+html:
+  favicon: ../favicon.svg
+  use_edit_page_button: false
+  use_repository_button: false
+  use_issues_button: false
+  extra_navbar: |
+    <a href="../" class="mq-home-link">← Back to Home</a>
+  extra_footer: |
+    <div class="mq-footer">© {current_year} MindQuantum.</div>
+
+theme:
+  name: sphinx_book_theme
+  logo: ../favicon.svg
+  options:
+    navigation_depth: 2
+    show_toc_level: 2
+    repository_url: https://github.com/
+    use_download_button: false
+    use_fullscreen_button: false
+
+sphinx:
+  config:
+    html_static_path: ["_static"]
+    html_css_files:
+      - mq-variables.css
+      - mq-theme.css
+    language: en
+
+execute:
+  execute_notebooks: off

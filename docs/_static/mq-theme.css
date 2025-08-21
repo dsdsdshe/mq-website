@@ -1,0 +1,36 @@
+/* MindQuantum Jupyter Book theme overrides.
+   This file is loaded after the base theme and variables. */
+
+:root {
+  /* Map shared tokens to Sphinx Book Theme variables when relevant */
+  --pst-color-primary: var(--mq-primary);
+}
+
+/* Global surface colors */
+html[data-theme="light"], :root {
+  --sb-foreground: var(--mq-text);
+  --sb-foreground-muted: var(--mq-text-muted);
+  --sb-background: var(--mq-bg);
+  --sb-surface: var(--mq-surface);
+  --sb-surface-2: var(--mq-surface-2);
+  --sb-border: var(--mq-border);
+}
+
+/* Navbar tweak: add Home link styling parity */
+.mq-home-link {
+  font-weight: 600;
+  color: var(--mq-text);
+  text-decoration: none;
+}
+.mq-home-link:hover { color: var(--mq-primary); }
+
+/* Cards, admonitions, code blocks feel */
+.bd-content .admonition, .bd-content details {
+  border-radius: var(--mq-radius);
+  border-color: var(--mq-border);
+}
+.bd-content pre { border-radius: var(--mq-radius); }
+
+/* Footer */
+.mq-footer { color: var(--mq-text-muted); }
+
