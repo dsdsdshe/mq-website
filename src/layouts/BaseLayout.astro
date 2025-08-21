@@ -1,4 +1,6 @@
 ---
+import "../styles/tokens.css";
+import "../styles/global.css";
 const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum' } = Astro.props;
 ---
 <!doctype html>
@@ -9,8 +11,6 @@ const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
-    <link rel="stylesheet" href="/styles/tokens.css" />
-    <link rel="stylesheet" href="/styles/global.css" />
   </head>
   <body>
     <header class="site-header">

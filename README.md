@@ -67,6 +67,12 @@ The build does not depend on external repos, but you can vendor content locally:
 - `npm run build:all` builds Jupyter Books into `public/docs/en` and `public/docs/zh`, then builds Astro into `dist/`.
 - GitHub Actions workflow `.github/workflows/deploy.yml` builds both and deploys the `dist/` folder to GitHub Pages. The Astro base path is computed automatically for project pages.
 
+## Docs Routing
+
+- Astro serves the built documentation under `/docs/<lang>/...` from `public/docs/<lang>/`.
+- The routes `/docs/en/` and `/docs/zh/` are lightweight Astro pages that redirect to a sensible start page (`/docs/<lang>/src/beginner/beginner.html`).
+- Deep links like `/docs/en/src/...` are served directly as static assets from `public/` for performance and simplicity.
+
 ## Theming
 
 - Shared CSS tokens live in `src/styles/tokens.css`.

@@ -1,0 +1,26 @@
+---
+const { lang } = Astro.params as { lang?: string };
+const supported = new Set(["en", "zh"]);
+const safeLang = supported.has(lang || "") ? (lang as "en" | "zh") : "en";
+
+const START_PAGE: Record<"en" | "zh", string> = {
+  en: "/docs/en/src/beginner/beginner.html",
+  zh: "/docs/zh/src/beginner/beginner.html",
+};
+
+const target = START_PAGE[safeLang];
+Astro.redirect(target);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={target} />
+    <title>Redirecting…</title>
+  </head>
+  <body>
+    <p>Redirecting to <a href={target}>{safeLang.toUpperCase()} docs</a>…</p>
+  </body>
+</html>
+
