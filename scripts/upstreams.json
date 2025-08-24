@@ -1,0 +1,14 @@
+{
+  "baseDir": ".upstreams",
+  "repos": {
+    "mindspore-docs": {
+      "url": "https://gitee.com/mindspore/docs.git",
+      "ref": "master"
+    },
+    "mindquantum": {
+      "url": "https://gitee.com/mindspore/mindquantum.git",
+      "ref": "master"
+    }
+  }
+}
+

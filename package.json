@@ -14,7 +14,8 @@
     "build:site": "astro build",
     "build:all": "npm run build:docs && npm run build:site",
     "sync:docs": "python scripts/sync_mindquantum_from_msdocs.py",
-    "sync:api": "python scripts/sync_mindquantum_api.py"
+    "sync:api": "python scripts/sync_mindquantum_api.py",
+    "sync:all": "python scripts/sync_all.py"
   },
   "dependencies": {
     "astro": "^4.10.0"

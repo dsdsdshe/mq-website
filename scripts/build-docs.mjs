@@ -28,6 +28,12 @@ async function buildOne(lang) {
 }
 
 async function main() {
+  // Ensure docs sources are present (auto-clone upstreams if needed)
+  try {
+    await run('python', ['scripts/sync_all.py'])
+  } catch (err) {
+    console.warn('Skipping upstream sync (non-fatal):', err?.message || err)
+  }
   // Sync design tokens first so docs use latest variables
   await run('node', ['scripts/prepare-tokens.mjs'])
   await buildOne('en')

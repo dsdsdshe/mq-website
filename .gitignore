@@ -2,6 +2,7 @@
 node_modules/
 .astro/
 dist/
+env.d.ts
 
 # Python / Jupyter Book
 .venv/
@@ -13,6 +14,9 @@ docs/zh/_build/
 docs/en/src/
 docs/zh/src/
 public/docs/
+
+# Local cache of upstream clones
+.upstreams/
 
 # MacOS
 .DS_Store

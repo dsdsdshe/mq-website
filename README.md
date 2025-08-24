@@ -29,24 +29,20 @@ pip install jupyter-book sphinx-copybutton sphinx-design mindquantum
 
 3) Sync docs content (optional during dev)
 
-Option A: Sync tutorials from a local `mindspore/docs` clone
+You no longer need to set environment variables. The repo can auto-clone the
+upstream sources into a local cache on first run. To sync both tutorials and
+API docs:
 
 ```bash
-export MS_DOCS_PATH=/path/to/mindspore-docs
-python scripts/sync_mindquantum_from_msdocs.py
-```
-
-Option B: Sync API sources from a local `mindquantum` clone
-
-```bash
-export MQ_REPO_PATH=/path/to/mindquantum
-python scripts/sync_mindquantum_api.py
+npm run sync:all            # clone if missing, reuse cache if present
+# or update to the latest upstreams before syncing
+python scripts/sync_all.py --update
 ```
 
 4) Build docs (optional during dev)
 
 ```bash
-npm run build:docs   # outputs to public/docs/en and public/docs/zh
+npm run build:docs   # auto-syncs upstreams, then builds both books
 ```
 
 5) Run the site
@@ -57,10 +53,9 @@ npm run dev
 
 ## Content Syncing
 
-The build does not depend on external repos, but you can vendor content locally:
-
-- Tutorials: `scripts/sync_mindquantum_from_msdocs.py` copies from `MS_DOCS_PATH` (`docs/mindquantum/docs/source_en` and `source_zh_cn`).
-- API: `scripts/sync_mindquantum_api.py` copies from `MQ_REPO_PATH` (`docs/api_python_en` and `docs/api_python`).
+- Auto-clone: Upstreams are cached under `.upstreams/` using `scripts/upstreams.json`.
+- Tutorials: `scripts/sync_mindquantum_from_msdocs.py` vendors Sphinx sources from the cached `mindspore-docs` clone.
+- API: `scripts/sync_mindquantum_api.py` vendors API sources from the cached `mindquantum` clone.
 
 ## Build and Deploy
 

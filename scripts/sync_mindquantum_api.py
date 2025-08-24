@@ -1,25 +1,31 @@
 #!/usr/bin/env python3
 """
-Sync MindQuantum API sources from a local clone of the MindQuantum repo.
+Sync MindQuantum API sources from an auto-managed clone of the MindQuantum repo.
 
 Copies:
-- <MQ_REPO_PATH>/docs/api_python_en → docs/en/src
-- <MQ_REPO_PATH>/docs/api_python    → docs/zh/src
+- .upstreams/mindquantum/docs/api_python_en → docs/en/src
+- .upstreams/mindquantum/docs/api_python    → docs/zh/src
 
 Usage:
-  MQ_REPO_PATH=/path/to/mindquantum python scripts/sync_mindquantum_api.py
+  python scripts/sync_mindquantum_api.py [--update]
 
 If a source directory is missing, it is skipped.
 """
 from __future__ import annotations
-import os
+import argparse
 import shutil
 from pathlib import Path
 
+try:
+    from .upstream_utils import ensure_repo
+except Exception:
+    from upstream_utils import ensure_repo  # type: ignore
+
 ROOT = Path(__file__).resolve().parents[1]
 
-DEST_EN = ROOT / 'docs' / 'en' / 'src'
-DEST_ZH = ROOT / 'docs' / 'zh' / 'src'
+DEST_EN = ROOT / "docs" / "en" / "src"
+DEST_ZH = ROOT / "docs" / "zh" / "src"
+
 
 def copy_into(src: Path, dst: Path) -> None:
     for item in src.iterdir():
@@ -31,31 +37,36 @@ def copy_into(src: Path, dst: Path) -> None:
         else:
             shutil.copy2(item, target)
 
-def main() -> None:
-    mq_repo = os.environ.get('MQ_REPO_PATH')
-    if not mq_repo:
-        raise SystemExit('Set MQ_REPO_PATH to your local mindquantum clone')
-    mq_root = Path(mq_repo).expanduser().resolve()
-    if not mq_root.exists():
-        raise SystemExit(f'Invalid MQ_REPO_PATH: {mq_root}')
 
-    en_src = mq_root / 'docs' / 'api_python_en'
-    zh_src = mq_root / 'docs' / 'api_python'
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Sync MindQuantum API sources into local Jupyter Books"
+    )
+    parser.add_argument(
+        "--update", action="store_true", help="Update upstream clones before syncing"
+    )
+    args = parser.parse_args()
+
+    # Always use auto-managed mindquantum clone
+    mq_root = ensure_repo("mindquantum", update=args.update)
+
+    en_src = mq_root / "docs" / "api_python_en"
+    zh_src = mq_root / "docs" / "api_python"
 
     if en_src.exists():
-        print(f'Copying EN API: {en_src} → {DEST_EN}')
+        print(f"Copying EN API: {en_src} → {DEST_EN}")
         copy_into(en_src, DEST_EN)
     else:
-        print(f'EN API directory not found, skipping: {en_src}')
+        print(f"EN API directory not found, skipping: {en_src}")
 
     if zh_src.exists():
-        print(f'Copying ZH API: {zh_src} → {DEST_ZH}')
+        print(f"Copying ZH API: {zh_src} → {DEST_ZH}")
         copy_into(zh_src, DEST_ZH)
     else:
-        print(f'ZH API directory not found, skipping: {zh_src}')
+        print(f"ZH API directory not found, skipping: {zh_src}")
 
-    print('Done.')
+    print("Done.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
-
