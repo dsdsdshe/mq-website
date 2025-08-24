@@ -36,6 +36,8 @@ async function main() {
   }
   // Sync design tokens first so docs use latest variables
   await run('node', ['scripts/prepare-tokens.mjs'])
+  // Generate _toc.yml for both books so API pages are included
+  await run('python', ['scripts/generate_toc.py'])
   await buildOne('en')
   await buildOne('zh')
 }
