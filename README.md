@@ -24,7 +24,7 @@ npm install
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install jupyter-book sphinx-copybutton sphinx-design mindquantum
+pip install jupyter-book sphinx-copybutton sphinx-design mindspore mindquantum
 ```
 
 3) Sync docs content (optional during dev)
