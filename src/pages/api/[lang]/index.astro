@@ -14,6 +14,8 @@ const safeLang: Lang = LANGS.includes((lang as Lang) || ("" as Lang))
 const BASE = import.meta.env.BASE_URL || '/';
 const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
 const IFRAME_SRC = `${BASE}docs/api/${safeLang}/${API_SUFFIX}`;
+const API_ROOT = `${BASE}docs/api/${safeLang}/`;
+const API_DEFAULT_REL = API_SUFFIX || '';
 const alternates = Object.fromEntries(
   LANGS.map((l: Lang) => [l, `${BASE}api/${l}/`])
 ) as Record<Lang, string>;
@@ -21,9 +23,10 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
 ---
 <BaseLayout title="MindQuantum API" description="Reference API documentation" lang={safeLang}>
   <section>
-    <iframe id="mq-docs-frame" src={IFRAME_SRC} title="MindQuantum API" loading="lazy" referrerpolicy="no-referrer-when-downgrade" />
+    <iframe id="mq-docs-frame" src={IFRAME_SRC} title="MindQuantum API" loading="lazy" referrerpolicy="no-referrer-when-downgrade" data-root={API_ROOT} data-default-rel={API_DEFAULT_REL} />
   </section>
   <script>
+    // Responsive sizing
     const iframe = document.getElementById('mq-docs-frame');
     const header = document.querySelector('.site-header');
     function sizeFrame() {
@@ -33,6 +36,74 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
     addEventListener('resize', sizeFrame);
     addEventListener('load', sizeFrame);
     sizeFrame();
+
+    // Deep-link syncing (hash-based): parent <-> iframe
+    const ROOT = iframe.dataset.root || '/docs/api/${safeLang}/';
+    const DEFAULT_REL = iframe.dataset.defaultRel || '';
+
+    function joinUrl(root, rel) {
+      if (!root.endsWith('/')) root += '/';
+      if (rel.startsWith('/')) rel = rel.slice(1);
+      return root + rel;
+    }
+
+    function relFromPathname(pathname, root) {
+      if (!root.endsWith('/')) root += '/';
+      return pathname.startsWith(root) ? pathname.slice(root.length) : null;
+    }
+
+    function normalizeRel(rel) {
+      return rel === 'index.html' ? '' : rel;
+    }
+
+    let suppressHashHandler = false;
+
+    function navigateIframeTo(rel, replace=false) {
+      const url = joinUrl(ROOT, rel || DEFAULT_REL);
+      if (replace) iframe.setAttribute('src', url);
+      else iframe.src = url;
+    }
+
+    iframe.addEventListener('load', () => {
+      try {
+        const win = iframe.contentWindow;
+        if (!win || !win.location) return;
+        const childPath = win.location.pathname + (win.location.search || '') + (win.location.hash || '');
+        const rel = relFromPathname(childPath, ROOT);
+        if (rel === null) return;
+        const next = normalizeRel(rel);
+        const desiredHash = '#/' + encodeURI(next);
+        if (location.hash !== desiredHash) {
+          suppressHashHandler = true;
+          history.pushState(null, '', desiredHash);
+          suppressHashHandler = false;
+        }
+      } catch (_) {}
+    });
+
+    function applyHashToIframe(replace=false) {
+      let h = location.hash || '';
+      if (!h.startsWith('#/')) {
+        navigateIframeTo(DEFAULT_REL, replace);
+        return;
+      }
+      const rel = decodeURI(h.slice(2));
+      navigateIframeTo(rel, replace);
+    }
+
+    addEventListener('hashchange', () => {
+      if (suppressHashHandler) return;
+      applyHashToIframe();
+    });
+
+    if (!location.hash || !location.hash.startsWith('#/')) {
+      suppressHashHandler = true;
+      history.replaceState(null, '', '#/' + encodeURI(DEFAULT_REL));
+      suppressHashHandler = false;
+      applyHashToIframe(true);
+    } else {
+      applyHashToIframe(true);
+    }
   </script>
   <style>
     section { padding: 0; }

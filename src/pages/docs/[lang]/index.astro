@@ -14,6 +14,8 @@ const safeLang: Lang = LANGS.includes((lang as Lang) || ("" as Lang))
   : DEFAULT_LANG;
 const BASE = import.meta.env.BASE_URL || '/';
 const target = `${BASE}${START_PAGE[safeLang].replace(/^\//, '')}`;
+const DOCS_ROOT = `${BASE}docs/${safeLang}/`;
+const START_REL = START_PAGE[safeLang].replace(/^\//, '').replace(`docs/${safeLang}/`, '');
 const alternates = Object.fromEntries(
   LANGS.map((l: Lang) => [l, `${BASE}docs/${l}/`])
 ) as Record<Lang, string>;
@@ -21,9 +23,10 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
 ---
 <BaseLayout title="MindQuantum Docs" description="Guides and tutorials" lang={safeLang}>
   <section>
-    <iframe id="mq-docs-frame" src={target} title="MindQuantum Docs" loading="lazy" referrerpolicy="no-referrer-when-downgrade" />
+    <iframe id="mq-docs-frame" src={target} title="MindQuantum Docs" loading="lazy" referrerpolicy="no-referrer-when-downgrade" data-root={DOCS_ROOT} data-default-rel={START_REL} />
   </section>
   <script>
+    // Responsive sizing
     const iframe = document.getElementById('mq-docs-frame');
     const header = document.querySelector('.site-header');
     function sizeFrame() {
@@ -33,6 +36,81 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
     addEventListener('resize', sizeFrame);
     addEventListener('load', sizeFrame);
     sizeFrame();
+
+    // Deep-link syncing (hash-based): parent <-> iframe
+    const ROOT = iframe.dataset.root || '/docs/${safeLang}/';
+    const DEFAULT_REL = iframe.dataset.defaultRel || 'index.html';
+
+    function joinUrl(root, rel) {
+      if (!root.endsWith('/')) root += '/';
+      if (rel.startsWith('/')) rel = rel.slice(1);
+      return root + rel;
+    }
+
+    function relFromPathname(pathname, root) {
+      // Ensure trailing slash on root for prefix check
+      if (!root.endsWith('/')) root += '/';
+      return pathname.startsWith(root) ? pathname.slice(root.length) : null;
+    }
+
+    function normalizeRel(rel) {
+      // Collapse default index to empty to keep hash short
+      return rel === 'index.html' ? '' : rel;
+    }
+
+    let suppressHashHandler = false;
+
+    function navigateIframeTo(rel, replace=false) {
+      const url = joinUrl(ROOT, rel || DEFAULT_REL);
+      if (replace) iframe.setAttribute('src', url);
+      else iframe.src = url;
+    }
+
+    // Reflect iframe navigation to parent hash
+    iframe.addEventListener('load', () => {
+      try {
+        const win = iframe.contentWindow;
+        if (!win || !win.location) return;
+        const childPath = win.location.pathname + (win.location.search || '') + (win.location.hash || '');
+        const rel = relFromPathname(childPath, ROOT);
+        if (rel === null) return; // external asset or cross-root
+        const next = normalizeRel(rel);
+        const desiredHash = '#/' + encodeURI(next);
+        if (location.hash !== desiredHash) {
+          suppressHashHandler = true;
+          history.pushState(null, '', desiredHash);
+          suppressHashHandler = false;
+        }
+      } catch (_) {
+        // ignore cross-origin or transient loads
+      }
+    });
+
+    // Respond to parent hash changes by updating the iframe
+    function applyHashToIframe(replace=false) {
+      let h = location.hash || '';
+      if (!h.startsWith('#/')) {
+        navigateIframeTo(DEFAULT_REL, replace);
+        return;
+      }
+      const rel = decodeURI(h.slice(2));
+      navigateIframeTo(rel, replace);
+    }
+
+    addEventListener('hashchange', () => {
+      if (suppressHashHandler) return;
+      applyHashToIframe();
+    });
+
+    // Initial sync: if no deep link, set to default; else honor hash
+    if (!location.hash || !location.hash.startsWith('#/')) {
+      suppressHashHandler = true;
+      history.replaceState(null, '', '#/' + encodeURI(DEFAULT_REL));
+      suppressHashHandler = false;
+      applyHashToIframe(true);
+    } else {
+      applyHashToIframe(true);
+    }
   </script>
   <style>
     section { padding: 0; }
