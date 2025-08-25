@@ -46,7 +46,7 @@ jobs:
           REPO_NAME=$(basename "$GITHUB_REPOSITORY")
           echo "ASTRO_BASE=/${REPO_NAME}/" >> $GITHUB_ENV
 
-      - name: Build docs (Jupyter Book)
+      - name: Build docs (JB + Sphinx)
         run: npm run build:docs
 
       - name: Build site (Astro)

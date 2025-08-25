@@ -1,7 +1,6 @@
 ---
-import { DEFAULT_LANG } from "../../config/i18n";
 const BASE = import.meta.env.BASE_URL || '/';
-const target = `${BASE}docs/${DEFAULT_LANG}/`;
+const target = `${BASE}docs/api/en/`;
 Astro.redirect(target);
 ---
 <!doctype html>
@@ -13,6 +12,6 @@ Astro.redirect(target);
     <title>Redirecting…</title>
   </head>
   <body>
-    <p>Redirecting to <a href={target}>English docs</a>…</p>
+    <p>Redirecting to <a href={target}>API (EN)</a>…</p>
   </body>
 </html>

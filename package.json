@@ -13,6 +13,7 @@
     "build:docs": "node scripts/build-docs.mjs",
     "build:site": "astro build",
     "build:all": "npm run build:docs && npm run build:site",
+    "clean:docs": "node scripts/clean-docs.mjs",
     "sync:docs": "python scripts/sync_mindquantum_from_msdocs.py",
     "sync:api": "python scripts/sync_mindquantum_api.py",
     "sync:all": "python scripts/sync_all.py"

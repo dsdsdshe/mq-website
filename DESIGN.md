@@ -12,8 +12,9 @@ This repository hosts both the MindQuantum website (Astro) and the documentation
 ## Architecture
 
 - Astro site at repo root. Static output in `dist/`.
-- Two Jupyter Book projects in `docs/en` and `docs/zh`. Build outputs go into `public/docs/en` and `public/docs/zh`, which Astro serves at `/docs/en/` and `/docs/zh/`.
-- GitHub Actions flow builds Jupyter Book first, then Astro, and deploys the combined `dist/`.
+- Two Jupyter Book projects in `docs/en` and `docs/zh`. Build outputs are centralized under `docs/_build/books/{lang}` and copied to `public/docs/{lang}`, which Astro serves at `/docs/{lang}/`.
+- API (Sphinx) builds as two projects in `docs/api-en` and `docs/api-zh`. Outputs are centralized under `docs/_build/api/{lang}` and copied to `public/docs/api/{lang}`.
+- GitHub Actions builds docs (Jupyter Book + Sphinx) first, then Astro, and deploys the combined `dist/`.
 
 ## Theming Strategy
 

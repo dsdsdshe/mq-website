@@ -5,7 +5,8 @@ Astro + Jupyter Book monorepo for the MindQuantum website and bilingual document
 ## Overview
 
 - Astro powers the homepage and overall site shell.
-- Jupyter Book builds bilingual tutorials and API docs with a custom theme.
+- Jupyter Book builds bilingual tutorials only (EN+ZH).
+- Sphinx builds the API reference as two projects (EN+ZH) using the internal `mqdocs` extension.
 - Shared design tokens keep visual consistency across both.
 - GitHub Pages workflow builds and deploys both outputs together.
 
@@ -39,10 +40,10 @@ npm run sync:all            # clone if missing, reuse cache if present
 python scripts/sync_all.py --update
 ```
 
-4) Build docs (optional during dev)
+4) Build docs (tutorials + API)
 
 ```bash
-npm run build:docs   # auto-syncs upstreams, then builds both books
+npm run build:docs   # auto-syncs upstreams, builds JB (tutorials) + Sphinx (API)
 ```
 
 5) Run the site
@@ -72,25 +73,25 @@ Local build example:
 # Ensure sources are synced into docs/api-*/
 python scripts/sync_mindquantum_api.py
 
-# Build EN API
-sphinx-build -b html docs/api-en docs/_build/api-en
+# Build EN API (centralized under docs/_build)
+sphinx-build -b html docs/api-en docs/_build/api/en
 
-# Build ZH API
-sphinx-build -b html docs/api-zh docs/_build/api-zh
+# Build ZH API (centralized under docs/_build)
+sphinx-build -b html docs/api-zh docs/_build/api/zh
 ```
 
 The extension avoids monkey-patches and implements stable `mscnautosummary`/`ms*autosummary` directives plus a minimal stub generator for those directives only. Standard autosummary remains untouched.
 
 ## Build and Deploy
 
-- `npm run build:all` builds Jupyter Books into `public/docs/en` and `public/docs/zh`, then builds Astro into `dist/`.
+- `npm run build:all` builds Jupyter Books and Sphinx into `public/docs/**`, then builds Astro into `dist/`. Temporary artifacts are centralized under `docs/_build/`.
 - GitHub Actions workflow `.github/workflows/deploy.yml` builds both and deploys the `dist/` folder to GitHub Pages. The Astro base path is computed automatically for project pages.
 
 ## Docs Routing
 
-- Astro serves the built documentation under `/docs/<lang>/...` from `public/docs/<lang>/`.
-- The routes `/docs/en/` and `/docs/zh/` are lightweight Astro pages that redirect to a sensible start page (`/docs/<lang>/src/beginner/beginner.html`).
-- Deep links like `/docs/en/src/...` are served directly as static assets from `public/` for performance and simplicity.
+- Tutorials (Jupyter Book): `/docs/en` and `/docs/zh` (from `public/docs/en` and `public/docs/zh`).
+- API (Sphinx): `/docs/api/en` and `/docs/api/zh` (from `public/docs/api/en` and `public/docs/api/zh`).
+- The site header should link to Tutorials and API for both languages.
 
 ## Theming
 
@@ -102,5 +103,8 @@ The extension avoids monkey-patches and implements stable `mscnautosummary`/`ms*
 
 - `src/` – Astro pages, layouts, and styles.
 - `public/` – static assets. Built docs are copied to `public/docs` (ignored by Git).
-- `docs/` – Jupyter Book projects: `docs/en` and `docs/zh` share `docs/_static` for theme assets and tokens.
-- `scripts/` – helper scripts (token sync, content sync, local build).
+- `docs/` – Documentation workspace:
+  - Jupyter Book projects: `docs/en` and `docs/zh` (tutorials only)
+  - Sphinx API projects: `docs/api-en` and `docs/api-zh`
+  - Shared assets: `docs/_ext`, `docs/_static`, `docs/_templates`
+- `scripts/` – helper scripts (token sync, upstream sync, local build).

@@ -16,22 +16,6 @@ parts:
   - file: src/case_library/case_library
     sections:
     - glob: src/case_library/*
-- caption: API Reference
-  chapters:
-  - file: src/overview
-  - file: src/mindquantum.dtype
-  - file: src/mindquantum.core
-    sections:
-    - glob: src/core/*/*
-  - file: src/mindquantum.simulator
-  - file: src/mindquantum.framework
-  - file: src/mindquantum.algorithm
-    sections:
-    - glob: src/algorithm/*/*
-  - file: src/mindquantum.device
-  - file: src/mindquantum.io
-  - file: src/mindquantum.engine
-  - file: src/mindquantum.utils
 - caption: Reference
   chapters:
   - file: src/mindquantum_install

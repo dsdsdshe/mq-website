@@ -6,11 +6,10 @@ set -euo pipefail
 echo "[0/2] Syncing upstreams (auto-clone if needed)"
 python scripts/sync_all.py || echo "WARN: upstream sync skipped"
 
-echo "[1/2] Building Jupyter Book → public/docs"
-jupyter-book build docs --path-output public/docs
+echo "[1/2] Building docs (Jupyter Book + Sphinx) → public/docs"
+npm run build:docs
 
 echo "[2/2] Building Astro site"
-node scripts/prepare-tokens.mjs
-astro build
+npm run build
 
 echo "Build completed → dist/"

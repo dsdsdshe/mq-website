@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Generate Jupyter Book _toc.yml files for English and Chinese docs.
+Generate Jupyter Book _toc.yml files for English and Chinese docs (tutorials only).
 
-This includes all tutorials and the full API tree so autosummary-generated
-pages are included in the navigation without hand-curated lists.
+API is now built in dedicated Sphinx projects (docs/api-en, docs/api-zh), so
+we deliberately exclude API pages from the books to avoid duplication.
 
 It writes docs/<lang>/_toc.yml for langs: en, zh.
 """
@@ -59,25 +59,7 @@ def gen_toc_for(lang: str) -> str:
         lines.append("    sections:")
         lines.append(f"    - glob: src/{folder}/*")
 
-    # API Reference
-    lines.append("- caption: API Reference")
-    lines.append("  chapters:")
-    # Always include the overview page first if present
-    if (src / "overview.rst").exists() or (src / "overview.md").exists():
-        lines.append("  - file: src/overview")
-
-    for topfile, folder in apidirs:
-        top_path_r = src / f"{topfile}.rst"
-        top_path_m = src / f"{topfile}.md"
-        if not (top_path_r.exists() or top_path_m.exists()):
-            continue
-        lines.append(f"  - file: src/{topfile}")
-        # If there is a directory with autosummary output, include its nested pages.
-        if folder and has_dir(src, folder):
-            lines.append("    sections:")
-            # Two-level glob includes nested API stubs (module members) without
-            # re-listing the immediate module stubs.
-            lines.append(f"    - glob: src/{folder}/*/*")
+    # No API Reference in Jupyter Books; linked from site nav to Sphinx builds.
 
     # References / Misc
     lines.append("- caption: Reference")
@@ -103,4 +85,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
