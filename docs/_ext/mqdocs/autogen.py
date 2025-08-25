@@ -145,6 +145,10 @@ def on_builder_inited(app: Sphinx) -> None:
     This mirrors autosummary's own generation strategy but only targets our
     custom directives, leaving standard autosummary untouched.
     """
+    # Do not generate stubs in CN builds; CN sources provide authored RSTs
+    lang = (getattr(app.config, 'language', '') or '').lower()
+    if lang.startswith('zh'):
+        return
     srcdir = Path(app.srcdir)
     for rst in srcdir.rglob("*.rst"):
         try:

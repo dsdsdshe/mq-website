@@ -44,7 +44,9 @@ _RE_MATH_BLOCK = re.compile(
 _RE_NOTE_BLOCK = re.compile(
     r"^\s*\.\.\s+note::\s*\n((?:\s{2,}.+\n?)+)", re.MULTILINE
 )
-_RE_PY_OBJ = re.compile(r"^\s*\.\.\s+py:(class|function|method)::\s+([^\s]+)\s*$")
+_RE_PY_OBJ = re.compile(
+    r"^\s*\.\.\s+py:(class|function|method|attribute|property|module|data)::\s+([^\s]+)\s*$"
+)
 
 
 def _safe_read(path: Path) -> str:
@@ -141,6 +143,10 @@ def _find_cn_rst_path(srcdir: Path, current_docname: str, toctree_dir: Optional[
     # Also try by last component
     tail = fullname.rsplit(".", 1)[-1]
     candidates.append(base_dir / (tail + ".rst"))
+    # Also try the parent object file for methods/attributes
+    if "." in fullname:
+        parent = fullname.rsplit(".", 1)[0]
+        candidates.append(base_dir / (parent + ".rst"))
     for c in candidates:
         if c.exists():
             return c
@@ -254,9 +260,11 @@ class _MsBaseAutosummary(Autosummary):
         toctree_dir = self.options.get("toctree")
         rst_path = _find_cn_rst_path(Path(env.srcdir), env.docname, toctree_dir, real_name)
         if not rst_path:
-            return current_summary
+            # Strict CN behavior: do not fall back to docstrings
+            return ""
         summary, _note, _math = _extract_cn_from_rst(rst_path, real_name)
-        return summary or current_summary
+        # Strict CN behavior: blank if missing
+        return summary or ""
 
     # Suppress "include current module" warnings by clearing current-module context
     def get_items(self, names: Sequence[str]):  # type: ignore[override]
