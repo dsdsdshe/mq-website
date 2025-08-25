@@ -14,6 +14,7 @@ const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
 const pathUnbased = stripBase(Astro.url.pathname, BASE);
 const currentLang = ((lang as Lang) || detectLang(pathUnbased)) as Lang;
 const nav = NAV_MESSAGES[currentLang];
+const homeHref = withBase(pathForLang('/', currentLang), BASE);
 
 // Build canonical and hreflang alternates
 const hrefFor = (l: Lang) => withBase(pathForLang(pathUnbased, l), BASE);
@@ -39,7 +40,7 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
   <body>
     <header class="site-header">
       <nav class="nav">
-        <a class="brand" href={BASE}>
+        <a class="brand" href={homeHref}>
           <img src={`${BASE}favicon.svg`} alt="MindQuantum" width="28" height="28" />
           <span>MindQuantum</span>
         </a>
@@ -59,6 +60,10 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
       </div>
     </footer>
   </body>
+  <script>
+    // Persist preferred language for future visits
+    try { localStorage.setItem('mq_lang', document.documentElement.lang || 'en'); } catch (e) {}
+  </script>
   <style>
     .site-header { position: sticky; top: 0; backdrop-filter: saturate(150%) blur(6px); background: color-mix(in oklab, var(--mq-surface), transparent 20%); border-bottom: 1px solid var(--mq-border); z-index: 20; }
     .nav { display: flex; align-items: center; gap: 1rem; padding: .75rem 1rem; max-width: var(--mq-page-max); margin: 0 auto; }

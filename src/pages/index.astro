@@ -8,6 +8,23 @@ const t = HOME_MESSAGES[lang];
 const BASE = import.meta.env.BASE_URL || '/';
 ---
 <BaseLayout lang={lang} title="MindQuantum" description={t.metaDescription}>
+  <script>
+    // Client-side redirect to preferred language homepage when landing on base root
+    (function(){
+      try {
+        var pref = localStorage.getItem('mq_lang') || 'en';
+        var base = {JSON.stringify(BASE)};
+        var path = window.location.pathname;
+        // Normalize to ensure base has trailing slash
+        if (pref && pref !== 'en') {
+          var dest = base + pref + '/';
+          if (path === base) {
+            window.location.replace(dest);
+          }
+        }
+      } catch (e) { /* no-op */ }
+    })();
+  </script>
   <section class="hero">
     <h1>{t.hero.title}</h1>
     <p>{t.hero.subtitle}</p>
