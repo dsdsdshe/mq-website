@@ -1,14 +1,14 @@
 ---
 import "../styles/tokens.css";
 import "../styles/global.css";
-const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum' } = Astro.props;
+const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum', lang = 'en' } = Astro.props;
 const BASE = import.meta.env.BASE_URL || '/';
 // In dev, Vite/Astro dev server doesn't serve directory indexes from public.
 // Append `index.html` to API links during dev; keep clean trailing slashes in prod.
 const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
 ---
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -24,6 +24,7 @@ const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
           <span>MindQuantum</span>
         </a>
         <div class="spacer" />
+        <a href={`${BASE}zh/`}>首页 (中文)</a>
         <a href={`${BASE}docs/en/`}>Docs (EN)</a>
         <a href={`${BASE}docs/zh/`}>文档 (中文)</a>
         <a href={`${BASE}docs/api/en/${API_SUFFIX}`}>API (EN)</a>

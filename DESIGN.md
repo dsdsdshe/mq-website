@@ -16,6 +16,17 @@ This repository hosts both the MindQuantum website (Astro) and the documentation
 - API (Sphinx) builds as two projects in `docs/api-en` and `docs/api-zh`. Outputs are centralized under `docs/_build/api/{lang}` and copied to `public/docs/api/{lang}`.
 - GitHub Actions builds docs (Jupyter Book + Sphinx) first, then Astro, and deploys the combined `dist/`.
 
+## i18n & Routing
+
+- Default language is English (`en`); the root (`/`) renders English content.
+- Non-default languages use a path prefix (e.g., `/zh/` for the Chinese homepage).
+- Docs and API landing routes are language-aware via lightweight redirect pages:
+  - `src/pages/docs/[lang]/index.astro` resolves a language-specific start page using `src/config/i18n.ts`.
+  - `src/pages/api/[lang]/index.astro` forwards to the respective API index.
+- Home content strings live in `src/locales/home.ts` to keep copy centralized and typed.
+- `src/layouts/BaseLayout.astro` accepts a `lang` prop, setting the document `lang` attribute correctly for accessibility and SEO.
+- A header link exposes the Chinese homepage at `/zh/` for discoverability.
+
 ## Theming Strategy
 
 - Shared CSS variables in `src/styles/tokens.css` model brand color, typography, and spacing.
@@ -38,5 +49,6 @@ This approach avoids maintaining a heavy bespoke Sphinx theme while still achiev
 ## Future Enhancements
 
 - Add dedicated API reference via Sphinx autodoc in `docs/` and expose under `/docs/api/`.
-- Add language switcher and versioned docs (e.g., by building multiple books into `public/docs/vX/`).
+- Add a global language switcher that maps current routes across locales (e.g., `/docs/en/...` ↔ `/docs/zh/...`).
+- Add versioned docs (e.g., by building multiple books into `public/docs/vX/`).
 - Replace the simple CSS stack with Tailwind + PostCSS in Astro if desired; tokens remain the source of truth.
