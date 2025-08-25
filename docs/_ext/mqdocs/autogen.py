@@ -1,46 +1,22 @@
 from __future__ import annotations
 
-import io
-import os
 import re
-import textwrap
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from sphinx.application import Sphinx
 
-try:
-    from sphinx.ext.autosummary.generate import import_by_name  # type: ignore
-except Exception:
-    import importlib
 
-    def import_by_name(name: str):  # type: ignore
-        modname, qualname = name, ""
-        obj = None
-        last_exc = None
-        while "." in modname:
-            try:
-                mod = importlib.import_module(modname)
-                obj = mod
-                for part in qualname.split("."):
-                    if not part:
-                        continue
-                    obj = getattr(obj, part)
-                return [(name, obj, None, modname, qualname)]
-            except Exception as e:  # keep walking up
-                last_exc = e
-                modname, tail = modname.rsplit(".", 1)
-                qualname = tail + ("." + qualname if qualname else "")
-        if last_exc:
-            raise last_exc
-        raise ImportError(f"Cannot import {name}")
+RE_ANY_AUTOSUMMARY = re.compile(
+    r"^\.\.\s+((ms[a-z]+autosummary)|autosummary)::\s*$",
+    re.IGNORECASE,
+)
 
 
-RE_MS_AUTOSUMMARY = re.compile(r"^\.\.\s+(ms[a-z]+autosummary)::\s*$", re.IGNORECASE)
-
-
-def _parse_ms_block(lines: List[str], start_idx: int) -> Tuple[Optional[str], List[str], int]:
-    """Parse an ms*autosummary block.
+def _parse_autosummary_block(
+    lines: List[str], start_idx: int
+) -> Tuple[Optional[str], List[str], int]:
+    """Parse an autosummary-like block (supports ms*autosummary and autosummary).
 
     Returns: (toctree_dir, items, end_index)
     """
@@ -65,68 +41,81 @@ def _parse_ms_block(lines: List[str], start_idx: int) -> Tuple[Optional[str], Li
     return toctree_dir, items, i
 
 
-def _guess_directive_for_obj(obj) -> str:
-    import inspect
-    import types
+def _guess_directive_by_name(qualname: str) -> str:
+    """Lightweight heuristic to choose an autodoc directive without importing.
 
-    if obj is None:
-        return "py:obj"
-    if inspect.ismodule(obj):
+    - Dotted name with capitalized tail → autoclass
+    - Dotted name with snake_case tail → autofunction
+    - Bare module name (no dot) → automodule
+    - Fallback → py:obj (safe and import-free)
+    """
+    if "." not in qualname:
         return "automodule"
-    if inspect.isclass(obj):
+    tail = qualname.rsplit(".", 1)[-1]
+    # Heuristics: CamelCase or typical class suffixes
+    if tail[:1].isupper() or any(
+        tail.endswith(s) for s in ("Gate", "Channel", "Layer", "Ops", "Operator")
+    ):
         return "autoclass"
-    if inspect.isfunction(obj):
+    # snake_case likely means function
+    if tail.lower() == tail or "_" in tail:
         return "autofunction"
-    if inspect.ismethod(obj):
-        return "automethod"
-    return "autodata"
+    return "py:obj"
 
 
 def _generate_stub_content(qualname: str) -> str:
-    """Generate a reasonable autodoc stub for a qualified name.
+    """Generate a stable stub without importing target objects.
 
-    If the object can be imported, choose an autodoc directive based on its type.
-    Otherwise, create a minimal py:obj target.
+    Produces one of: automodule, autoclass, autofunction, or py:obj.
+    Only adds :members: for automodule/autoclass; avoids invalid options for others.
     """
-    try:
-        res = import_by_name(qualname)
-        if res:
-            item = res[0]
-            obj = item[1]
-            modname = item[-2]
-        else:
-            obj = None
-            modname = None
-    except Exception:
-        obj = None
-        modname = None
-
-    directive = _guess_directive_for_obj(obj)
+    directive = _guess_directive_by_name(qualname)
     title = qualname
     underline = "=" * len(title)
 
-    if obj is None:
-        body = f".. py:obj:: {qualname}\n"
+    if directive == "automodule":
+        body = (
+            f".. automodule:: {qualname}\n"
+            "   :members:\n"
+            "   :undoc-members:\n"
+            "   :show-inheritance:\n"
+        )
+    elif directive == "autoclass":
+        mod = qualname.rsplit(".", 1)[0]
+        body = (
+            f".. currentmodule:: {mod}\n\n"
+            f".. autoclass:: {qualname}\n"
+            "   :members:\n"
+            "   :undoc-members:\n"
+        )
+    elif directive == "autofunction":
+        mod = qualname.rsplit(".", 1)[0]
+        body = (
+            f".. currentmodule:: {mod}\n\n"
+            f".. autofunction:: {qualname}\n"
+        )
     else:
-        # Set currentmodule when available for nicer headings/links
-        cm = f".. currentmodule:: {modname}\n\n" if modname else ""
-        if directive in {"autoclass", "automethod", "autofunction", "autodata"}:
-            body = (
-                f"{cm}.. {directive}:: {qualname}\n"
-                "   :members:\n"
-                "   :undoc-members:\n"
-            )
-        elif directive == "automodule":
-            body = (
-                f"{cm}.. automodule:: {qualname}\n"
-                "   :members:\n"
-                "   :undoc-members:\n"
-                "   :show-inheritance:\n"
-            )
-        else:
-            body = f".. py:obj:: {qualname}\n"
+        body = f".. py:obj:: {qualname}\n"
 
     return f"{title}\n{underline}\n\n{body}\n"
+
+
+def _needs_rewrite(path: Path) -> bool:
+    """Detect obviously broken/generated stubs from previous runs.
+
+    Rewrites when:
+    - bogus currentmodule like '.. currentmodule:: i'
+    - autodata directives combined with ':members:' (invalid)
+    """
+    try:
+        text = path.read_text(encoding="utf-8").lower()
+    except Exception:
+        return False
+    if ".. currentmodule:: i\n" in text or ".. currentmodule:: i\r\n" in text:
+        return True
+    if ".. autodata::" in text and ":members:" in text:
+        return True
+    return False
 
 
 def _write_file(path: Path, content: str) -> None:
@@ -140,10 +129,10 @@ def _clean_filename(name: str) -> str:
 
 
 def on_builder_inited(app: Sphinx) -> None:
-    """Scan for ms*autosummary directives and generate missing stubs.
+    """Scan autosummary-like directives and generate missing stubs (EN only).
 
-    This mirrors autosummary's own generation strategy but only targets our
-    custom directives, leaving standard autosummary untouched.
+    We intentionally do not import project code; stubs are generated from names
+    for stability across environments. CN builds are left untouched (authored RSTs).
     """
     # Do not generate stubs in CN builds; CN sources provide authored RSTs
     lang = (getattr(app.config, 'language', '') or '').lower()
@@ -158,8 +147,8 @@ def on_builder_inited(app: Sphinx) -> None:
         lines = text.splitlines()
         i = 0
         while i < len(lines):
-            if RE_MS_AUTOSUMMARY.match(lines[i] or ""):
-                toctree_dir, items, i = _parse_ms_block(lines, i)
+            if RE_ANY_AUTOSUMMARY.match(lines[i] or ""):
+                toctree_dir, items, i = _parse_autosummary_block(lines, i)
                 # Destination folder: under the source file directory (like autosummary)
                 base_dir = rst.parent
                 if toctree_dir:
@@ -167,9 +156,8 @@ def on_builder_inited(app: Sphinx) -> None:
                 # Generate missing stubs
                 for qualname in items:
                     outfile = base_dir / (_clean_filename(qualname) + ".rst")
-                    if outfile.exists():
-                        continue
-                    content = _generate_stub_content(qualname)
-                    _write_file(outfile, content)
+                    if (not outfile.exists()) or _needs_rewrite(outfile):
+                        content = _generate_stub_content(qualname)
+                        _write_file(outfile, content)
             else:
                 i += 1

@@ -9,9 +9,11 @@ async function clean(path) {
 async function main() {
   const targets = [
     resolve('docs/_build'),
-    resolve('docs/en/_build'),
-    resolve('docs/zh/_build'),
     resolve('public/docs'),
+    resolve('docs/api-en/api_python_en'),
+    resolve('docs/api-zh/api_python'),
+    resolve('docs/en/src'),
+    resolve('docs/zh/src'),
   ]
   for (const t of targets) {
     await clean(t)
