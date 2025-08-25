@@ -47,3 +47,14 @@ export function altLang(current: Lang): Lang {
   return (current === "en" ? "zh" : "en") as Lang;
 }
 
+export function detectLang(pathUnbased: string): Lang {
+  // Normalize
+  if (!pathUnbased.startsWith("/")) pathUnbased = `/${pathUnbased}`;
+  // Docs and API explicit language segment
+  const m = pathUnbased.match(/^\/(docs(?:\/api)?)\/(en|zh)(?:\/|$)/);
+  if (m) return m[2] as Lang;
+  // Site-level zh prefix
+  if (pathUnbased === "/zh" || pathUnbased.startsWith("/zh/")) return "zh";
+  // Root and everything else defaults to DEFAULT_LANG
+  return DEFAULT_LANG;
+}

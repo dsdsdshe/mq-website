@@ -3,34 +3,36 @@ import "../styles/tokens.css";
 import "../styles/global.css";
 import LanguageSwitcher from "../components/LanguageSwitcher.astro";
 import { NAV_MESSAGES } from "../locales/nav";
-import { stripBase, withBase, pathForLang } from "../config/urls";
+import { stripBase, withBase, pathForLang, detectLang } from "../config/urls";
 import { LANGS, DEFAULT_LANG, type Lang } from "../config/i18n";
-const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum', lang = 'en' } = Astro.props as { title?: string; description?: string; lang?: Lang };
+const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum', lang } = Astro.props as { title?: string; description?: string; lang?: Lang };
 const BASE = import.meta.env.BASE_URL || '/';
 // In dev, Vite/Astro dev server doesn't serve directory indexes from public.
 // Append `index.html` to API links during dev; keep clean trailing slashes in prod.
 const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
-const nav = NAV_MESSAGES[lang as Lang];
+const pathUnbased = stripBase(Astro.url.pathname, BASE);
+const currentLang = ((lang as Lang) || detectLang(pathUnbased)) as Lang;
+const nav = NAV_MESSAGES[currentLang];
 
 // Build canonical and hreflang alternates
-const pathUnbased = stripBase(Astro.url.pathname, BASE);
 const hrefFor = (l: Lang) => withBase(pathForLang(pathUnbased, l), BASE);
 const alternates = Object.fromEntries(LANGS.map((l) => [l, hrefFor(l)])) as Record<Lang, string>;
 const xDefaultHref = hrefFor(DEFAULT_LANG);
-const canonicalHref = hrefFor(lang as Lang);
+const canonicalHref = hrefFor(currentLang);
+const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString() : href);
 ---
 <!doctype html>
-<html lang={lang}>
+<html lang={currentLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={`${BASE}favicon.svg`} />
-    <link rel="canonical" href={canonicalHref} />
+    <link rel="canonical" href={abs(canonicalHref)} />
     {Object.entries(alternates).map(([code, href]) => (
-      <link rel="alternate" hreflang={code} href={href} />
+      <link rel="alternate" hreflang={code} href={abs(href)} />
     ))}
-    <link rel="alternate" hreflang="x-default" href={xDefaultHref} />
+    <link rel="alternate" hreflang="x-default" href={abs(xDefaultHref)} />
     <title>{title}</title>
   </head>
   <body>
@@ -41,10 +43,10 @@ const canonicalHref = hrefFor(lang as Lang);
           <span>MindQuantum</span>
         </a>
         <div class="spacer" />
-        <a href={`${BASE}docs/${lang}/`}>{nav.docs}</a>
-        <a href={`${BASE}docs/api/${lang}/${API_SUFFIX}`}>{nav.api}</a>
-        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
-        <LanguageSwitcher lang={lang} />
+        <a href={`${BASE}docs/${currentLang}/`}>{nav.docs}</a>
+        <a href={`${BASE}docs/api/${currentLang}/${API_SUFFIX}`}>{nav.api}</a>
+        <a href="https://github.com/" target="_blank" rel="noopener">{nav.github}</a>
+        <LanguageSwitcher lang={currentLang} />
       </nav>
     </header>
     <main class="container">
