@@ -55,7 +55,31 @@ npm run dev
 
 - Auto-clone: Upstreams are cached under `.upstreams/` using `scripts/upstreams.json`.
 - Tutorials: `scripts/sync_mindquantum_from_msdocs.py` vendors Sphinx sources from the cached `mindspore-docs` clone.
-- API: `scripts/sync_mindquantum_api.py` vendors API sources from the cached `mindquantum` clone.
+- API: `scripts/sync_mindquantum_api.py` vendors API sources from the cached `mindquantum` clone. It also syncs into the standalone Sphinx projects at `docs/api-en/api_python_en` and `docs/api-zh/api_python`.
+
+### API (Sphinx) Projects
+
+In addition to the Jupyter Books, the API reference builds as two Sphinx projects using a clean internal extension (`mqdocs`):
+
+- `docs/api-en/` – English API, uses `ms*autosummary` directives that derive third columns from docstrings
+- `docs/api-zh/` – Chinese API, uses `mscnautosummary` directives that read summaries from the local RST pages
+
+Shared assets live under `docs/_ext`, `docs/_templates`, and `docs/_static`.
+
+Local build example:
+
+```bash
+# Ensure sources are synced into docs/api-*/
+python scripts/sync_mindquantum_api.py
+
+# Build EN API
+sphinx-build -b html docs/api-en docs/_build/api-en
+
+# Build ZH API
+sphinx-build -b html docs/api-zh docs/_build/api-zh
+```
+
+The extension avoids monkey-patches and implements stable `mscnautosummary`/`ms*autosummary` directives plus a minimal stub generator for those directives only. Standard autosummary remains untouched.
 
 ## Build and Deploy
 

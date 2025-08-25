@@ -1,0 +1,30 @@
+/* Minimal Sphinx styling bridge to match site brand */
+:root {
+  --mq-accent: #4f46e5; /* indigo-600 */
+  --mq-text: #0f172a;   /* slate-900 */
+}
+
+body {
+  color: var(--mq-text);
+}
+
+a, a.reference {
+  color: var(--mq-accent);
+}
+
+.wy-nav-top, .bd-header, .navbar, .tocsection {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+table.docutils {
+  width: 100%;
+}
+
+table.docutils th {
+  font-weight: 600;
+}
+
+table.docutils td, table.docutils th {
+  padding: 0.5rem 0.75rem;
+}
+

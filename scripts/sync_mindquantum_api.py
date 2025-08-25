@@ -25,6 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 DEST_EN = ROOT / "docs" / "en" / "src"
 DEST_ZH = ROOT / "docs" / "zh" / "src"
+DEST_API_EN = ROOT / "docs" / "api-en" / "api_python_en"
+DEST_API_ZH = ROOT / "docs" / "api-zh" / "api_python"
 
 
 def copy_into(src: Path, dst: Path) -> None:
@@ -56,12 +58,26 @@ def main() -> None:
     if en_src.exists():
         print(f"Copying EN API: {en_src} → {DEST_EN}")
         copy_into(en_src, DEST_EN)
+        # Also sync to Sphinx API project
+        if DEST_API_EN.exists():
+            print(f"Copying EN API → {DEST_API_EN}")
+        else:
+            DEST_API_EN.mkdir(parents=True, exist_ok=True)
+            print(f"Created {DEST_API_EN}")
+        copy_into(en_src, DEST_API_EN)
     else:
         print(f"EN API directory not found, skipping: {en_src}")
 
     if zh_src.exists():
         print(f"Copying ZH API: {zh_src} → {DEST_ZH}")
         copy_into(zh_src, DEST_ZH)
+        # Also sync to Sphinx API project
+        if DEST_API_ZH.exists():
+            print(f"Copying ZH API → {DEST_API_ZH}")
+        else:
+            DEST_API_ZH.mkdir(parents=True, exist_ok=True)
+            print(f"Created {DEST_API_ZH}")
+        copy_into(zh_src, DEST_API_ZH)
     else:
         print(f"ZH API directory not found, skipping: {zh_src}")
 
