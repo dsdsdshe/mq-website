@@ -1,6 +1,6 @@
 ---
 const BASE = import.meta.env.BASE_URL || '/';
-const target = `${BASE}docs/api/en/`;
+const target = `${BASE}docs/api/en/${import.meta.env.DEV ? 'index.html' : ''}`;
 Astro.redirect(target);
 ---
 <!doctype html>

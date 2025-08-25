@@ -11,7 +11,7 @@ const safeLang: Lang = LANGS.includes((lang as Lang) || ("" as Lang))
   : "en";
 
 const BASE = import.meta.env.BASE_URL || '/';
-const target = `${BASE}docs/api/${safeLang}/`;
+const target = `${BASE}docs/api/${safeLang}/${import.meta.env.DEV ? 'index.html' : ''}`;
 Astro.redirect(target);
 ---
 <!doctype html>
