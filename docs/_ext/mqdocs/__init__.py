@@ -28,6 +28,9 @@ from .normalize import normalize_py_property_option
 
 
 def setup(app: Sphinx):
+    # Config: optional warnings when CN summary is missing
+    app.add_config_value("mqdocs_warn_missing_cn_summary", True, "env")
+
     # Register directives
     app.add_directive("msmathautosummary", MsMathAutosummary)
     app.add_directive("msnoteautosummary", MsNoteAutosummary)

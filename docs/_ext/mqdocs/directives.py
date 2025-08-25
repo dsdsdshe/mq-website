@@ -9,6 +9,7 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 from docutils import nodes
 from sphinx import addnodes
 from sphinx.ext.autosummary import Autosummary
+from sphinx.util import logging
 
 try:  # Sphinx >= 5
     from sphinx.ext.autosummary.generate import import_by_name  # type: ignore
@@ -257,14 +258,31 @@ class _MsBaseAutosummary(Autosummary):
 
     def _compute_cn_summary(self, real_name: str, current_summary: str) -> str:
         env = self.state.document.settings.env  # type: ignore[attr-defined]
+        logger = logging.getLogger(__name__)
+        warn_missing = bool(getattr(env.app.config, "mqdocs_warn_missing_cn_summary", True))
         toctree_dir = self.options.get("toctree")
         rst_path = _find_cn_rst_path(Path(env.srcdir), env.docname, toctree_dir, real_name)
         if not rst_path:
             # Strict CN behavior: do not fall back to docstrings
+            if warn_missing:
+                logger.warning(
+                    "CN autosummary: RST not found for %s (doc=%s, toctree=%s)",
+                    real_name,
+                    env.docname,
+                    toctree_dir or "",
+                )
             return ""
         summary, _note, _math = _extract_cn_from_rst(rst_path, real_name)
         # Strict CN behavior: blank if missing
-        return summary or ""
+        if not (summary and summary.strip()):
+            if warn_missing:
+                logger.warning(
+                    "CN autosummary: missing summary in %s for %s",
+                    rst_path,
+                    real_name,
+                )
+            return ""
+        return summary
 
     # Suppress "include current module" warnings by clearing current-module context
     def get_items(self, names: Sequence[str]):  # type: ignore[override]
