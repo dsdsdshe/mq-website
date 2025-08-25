@@ -46,7 +46,7 @@ _RE_NOTE_BLOCK = re.compile(
     r"^\s*\.\.\s+note::\s*\n((?:\s{2,}.+\n?)+)", re.MULTILINE
 )
 _RE_PY_OBJ = re.compile(
-    r"^\s*\.\.\s+py:(class|function|method|attribute|property|module|data)::\s+([^\s]+)\s*$"
+    r"^\s*\.\.\s+py:(?P<kind>class|function|method|attribute|property|module|data)::\s+(?P<name>[^\s(]+)(?:\s*\(.*)?\s*$"
 )
 
 
@@ -171,7 +171,7 @@ def _extract_cn_from_rst(rst_path: Path, fullname: str) -> tuple[Optional[str], 
         m = _RE_PY_OBJ.match(ln)
         if not m:
             continue
-        objname = m.group(2).strip()
+        objname = m.group("name").strip()
         if objname == full or objname == tail:
             start_idx = i
             break
