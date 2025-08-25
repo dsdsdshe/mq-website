@@ -1,4 +1,5 @@
 ---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { LANGS, type Lang, DEFAULT_LANG } from "../../../config/i18n";
 
 export function getStaticPaths() {
@@ -8,30 +9,33 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang?: string };
 const safeLang: Lang = LANGS.includes((lang as Lang) || ("" as Lang))
   ? (lang as Lang)
-  : "en";
+  : DEFAULT_LANG;
 
 const BASE = import.meta.env.BASE_URL || '/';
-const SUFFIX = import.meta.env.DEV ? 'index.html' : '';
-const target = `${BASE}docs/api/${safeLang}/${SUFFIX}`;
+const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
+const IFRAME_SRC = `${BASE}docs/api/${safeLang}/${API_SUFFIX}`;
 const alternates = Object.fromEntries(
-  LANGS.map((l: Lang) => [l, `${BASE}docs/api/${l}/${SUFFIX}`])
+  LANGS.map((l: Lang) => [l, `${BASE}api/${l}/`])
 ) as Record<Lang, string>;
 const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString() : href);
-Astro.redirect(target);
 ---
-<!doctype html>
-<html lang={safeLang}>
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="refresh" content={`0; url=${target}`} />
-    <link rel="canonical" href={abs(target)} />
-    {Object.entries(alternates).map(([code, href]) => (
-      <link rel="alternate" hreflang={code} href={abs(href)} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={abs(alternates[DEFAULT_LANG])} />
-    <title>Redirecting…</title>
-  </head>
-  <body>
-    <p>Redirecting to <a href={target}>API ({safeLang.toUpperCase()})</a>…</p>
-  </body>
-</html>
+<BaseLayout title="MindQuantum API" description="Reference API documentation" lang={safeLang}>
+  <section>
+    <iframe id="mq-docs-frame" src={IFRAME_SRC} title="MindQuantum API" loading="lazy" referrerpolicy="no-referrer-when-downgrade" />
+  </section>
+  <script>
+    const iframe = document.getElementById('mq-docs-frame');
+    const header = document.querySelector('.site-header');
+    function sizeFrame() {
+      const h = header ? header.offsetHeight : 0;
+      iframe.style.height = `calc(100vh - ${h}px)`;
+    }
+    addEventListener('resize', sizeFrame);
+    addEventListener('load', sizeFrame);
+    sizeFrame();
+  </script>
+  <style>
+    section { padding: 0; }
+    #mq-docs-frame { width: 100%; border: 0; display: block; }
+  </style>
+</BaseLayout>

@@ -45,7 +45,7 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
         </a>
         <div class="spacer" />
         <a href={`${BASE}docs/${currentLang}/`}>{nav.docs}</a>
-        <a href={`${BASE}docs/api/${currentLang}/${API_SUFFIX}`}>{nav.api}</a>
+        <a href={`${BASE}api/${currentLang}/`}>{nav.api}</a>
         <a href={REPO_URL} target="_blank" rel="noopener">{nav.repo}</a>
         <LanguageSwitcher lang={currentLang} />
       </nav>
