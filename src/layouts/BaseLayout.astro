@@ -5,6 +5,7 @@ import LanguageSwitcher from "../components/LanguageSwitcher.astro";
 import { NAV_MESSAGES } from "../locales/nav";
 import { stripBase, withBase, pathForLang, detectLang } from "../config/urls";
 import { LANGS, DEFAULT_LANG, type Lang } from "../config/i18n";
+import { REPO_URL } from "../config/site";
 const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum', lang } = Astro.props as { title?: string; description?: string; lang?: Lang };
 const BASE = import.meta.env.BASE_URL || '/';
 // In dev, Vite/Astro dev server doesn't serve directory indexes from public.
@@ -45,7 +46,7 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
         <div class="spacer" />
         <a href={`${BASE}docs/${currentLang}/`}>{nav.docs}</a>
         <a href={`${BASE}docs/api/${currentLang}/${API_SUFFIX}`}>{nav.api}</a>
-        <a href="https://github.com/" target="_blank" rel="noopener">{nav.github}</a>
+        <a href={REPO_URL} target="_blank" rel="noopener">{nav.repo}</a>
         <LanguageSwitcher lang={currentLang} />
       </nav>
     </header>

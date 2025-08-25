@@ -11,7 +11,7 @@ export type HomeMessages = {
     title: string;
     subtitle: string;
     startLabel: string;
-    githubLabel: string;
+    repoLabel: string;
   };
   features: HomeFeature[];
   docs: {
@@ -30,7 +30,7 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
       subtitle:
         "Build and simulate quantum circuits with performance, clarity, and delightful docs.",
       startLabel: "Start Learning",
-      githubLabel: "GitHub",
+      repoLabel: "Gitee",
     },
     features: [
       {
@@ -59,7 +59,7 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
       title: "MindQuantum",
       subtitle: "高性能、清晰易用的量子电路构建与模拟，并配备优质文档。",
       startLabel: "开始学习",
-      githubLabel: "GitHub",
+      repoLabel: "Gitee",
     },
     features: [
       { title: "高速模拟器", description: "面向科研与教学的一流量子模拟器。" },

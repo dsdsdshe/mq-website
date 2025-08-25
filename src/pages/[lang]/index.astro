@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { LANGS, DEFAULT_LANG, type Lang } from "../../config/i18n";
 import { HOME_MESSAGES } from "../../locales/home";
+import { REPO_URL } from "../../config/site";
 
 // Generate localized home pages for non-default languages (e.g., zh)
 export function getStaticPaths() {
@@ -23,7 +24,7 @@ const BASE = import.meta.env.BASE_URL || '/';
     <p>{t.hero.subtitle}</p>
     <div class="actions">
       <a class="btn primary" href={`${BASE}docs/${safeLang}/`}>{t.hero.startLabel}</a>
-      <a class="btn" href="https://github.com/" target="_blank" rel="noopener">{t.hero.githubLabel}</a>
+      <a class="btn" href={REPO_URL} target="_blank" rel="noopener">{t.hero.repoLabel}</a>
     </div>
   </section>
 
