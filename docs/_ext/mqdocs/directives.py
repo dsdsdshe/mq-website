@@ -7,8 +7,10 @@ from pathlib import Path
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 from docutils import nodes
+from docutils.statemachine import ViewList
 from sphinx import addnodes
 from sphinx.ext.autosummary import Autosummary
+from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util import logging
 
 try:  # Sphinx >= 5
@@ -39,9 +41,6 @@ except Exception:  # pragma: no cover - fallback
         raise ImportError(f"Cannot import {name}")
 
 
-_RE_MATH_BLOCK = re.compile(
-    r"^\s*\.\.\s+math::\s*\n((?:\s{2,}.+\n?)+)", re.MULTILINE
-)
 _RE_NOTE_BLOCK = re.compile(
     r"^\s*\.\.\s+note::\s*\n((?:\s{2,}.+\n?)+)", re.MULTILINE
 )
@@ -76,25 +75,58 @@ def _first_paragraph(lines: List[str]) -> str:
                 break
             else:
                 continue
-        # skip option lines like ':param foo:' which are indented
-        if ln.lstrip().startswith(":"):
+        # skip directive and option lines
+        if ln.lstrip().startswith(".. ") or ln.lstrip().startswith(":"):
             continue
         seen_text = True
         buf.append(ln.strip())
     return " ".join(buf).strip()
 
 
+def _indent_len(s: str) -> int:
+    return len(s) - len(s.lstrip())
+
+
+def _find_first_directive_block(text: str, name: str) -> Optional[str]:
+    """Find the first '.. name::' block and return exact RST snippet.
+
+    This parser respects indentation so that only the directive's own content
+    is captured, preventing trailing paragraphs from being included.
+    """
+    lines = text.splitlines()
+    for i, ln in enumerate(lines):
+        stripped = ln.strip()
+        if not stripped.startswith(".. "):
+            continue
+        # match '.. name::' with optional arguments
+        m = re.match(r"^\s*\.\.\s+" + re.escape(name) + r"::(\s*.*)$", ln)
+        if not m:
+            continue
+        base = _indent_len(ln)
+        j = i + 1
+        block = [ln.rstrip()]
+        while j < len(lines):
+            cur = lines[j]
+            if cur.strip() == "":
+                block.append(cur.rstrip())
+                j += 1
+                continue
+            ind = _indent_len(cur)
+            if ind > base:
+                block.append(cur.rstrip())
+                j += 1
+                continue
+            break
+        return "\n".join(block).rstrip()
+    return None
+
+
 def _extract_docstring_section(doc: str, kind: str) -> Optional[str]:
     if not doc:
         return None
     if kind == "math":
-        m = _RE_MATH_BLOCK.search(doc)
-        if not m:
-            return None
-        block = _dedent_block(m.group(1))
-        # Use first line as inline representation
-        first = block.splitlines()[0].strip()
-        return first
+        rst = _find_first_directive_block(doc, "math")
+        return rst
     if kind == "note":
         m = _RE_NOTE_BLOCK.search(doc)
         if not m:
@@ -202,9 +234,9 @@ def _extract_cn_from_rst(rst_path: Path, fullname: str) -> tuple[Optional[str], 
     m = _RE_NOTE_BLOCK.search(block_text)
     if m:
         note = _dedent_block(m.group(1)).splitlines()[0].strip()
-    m = _RE_MATH_BLOCK.search(block_text)
-    if m:
-        math = _dedent_block(m.group(1)).splitlines()[0].strip()
+    rst = _find_first_directive_block(block_text, "math")
+    if rst:
+        math = rst
 
     return (summary or None, note, math)
 
@@ -358,22 +390,46 @@ class _MsBaseAutosummary(Autosummary):
             entry_name += para
             row += entry_name
 
-            # Summary cell
+            # Summary cell (parse inline RST for roles/math)
             entry_sum = nodes.entry()
-            entry_sum += nodes.paragraph(text=summary or "")
+            for child in self._render_inline(summary or ""):
+                entry_sum += child
             row += entry_sum
 
             # Third column if any
             if self.third_kind:
                 entry_third = nodes.entry()
-                txt = third or ""
-                entry_third += nodes.paragraph(text=txt)
+                txt = (third or "").strip()
+                # If we already have a math directive, parse it as block math
+                # Otherwise, allow inline RST (including :math:`...` roles) to render.
+                if self.third_kind == "math" and txt.startswith(".. math::"):
+                    rst = txt
+                else:
+                    rst = txt
+                for child in self._render_inline(rst):
+                    entry_third += child
                 row += entry_third
 
             tbody += row
 
         # Autosummary expects a list of nodes
         return [table]
+
+    def _render_inline(self, text: str) -> List[nodes.Node]:
+        """Parse a short RST string into nodes with inline roles/math enabled.
+
+        Returns a list of nodes suitable to be added into a table entry.
+        """
+        if not text:
+            return [nodes.paragraph("")]
+        env = self.state.document.settings.env  # type: ignore[attr-defined]
+        view = ViewList()
+        src = env.doc2path(env.docname)
+        for i, line in enumerate(text.splitlines()):
+            view.append(line, src, i)
+        container = nodes.container()
+        nested_parse_with_titles(self.state, view, container)
+        return container.children or [nodes.paragraph("")]
 
 
 # EN variants (docstring-derived third columns)
