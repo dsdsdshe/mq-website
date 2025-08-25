@@ -1,5 +1,5 @@
 ---
-import { LANGS, type Lang, START_PAGE } from "../../../config/i18n";
+import { LANGS, type Lang, START_PAGE, DEFAULT_LANG } from "../../../config/i18n";
 
 // Generate static paths for all supported languages
 export function getStaticPaths() {
@@ -13,14 +13,21 @@ const safeLang: Lang = LANGS.includes((lang as Lang) || ("" as Lang))
   : "en";
 const BASE = import.meta.env.BASE_URL || '/';
 const target = `${BASE}${START_PAGE[safeLang].replace(/^\//, '')}`;
+const alternates = Object.fromEntries(
+  LANGS.map((l: Lang) => [l, `${BASE}${START_PAGE[l].replace(/^\//, '')}`])
+) as Record<Lang, string>;
 Astro.redirect(target);
 ---
 <!doctype html>
-<html lang="en">
+<html lang={safeLang}>
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="refresh" content={`0; url=${target}`} />
     <link rel="canonical" href={target} />
+    {Object.entries(alternates).map(([code, href]) => (
+      <link rel="alternate" hreflang={code} href={href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={alternates[DEFAULT_LANG]} />
     <title>Redirecting…</title>
   </head>
   <body>

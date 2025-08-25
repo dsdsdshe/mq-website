@@ -1,7 +1,8 @@
 ---
-import { DEFAULT_LANG } from "../../config/i18n";
+import { DEFAULT_LANG, LANGS, type Lang } from "../../config/i18n";
 const BASE = import.meta.env.BASE_URL || '/';
 const target = `${BASE}docs/${DEFAULT_LANG}/`;
+const alternates = Object.fromEntries(LANGS.map((l: Lang) => [l, `${BASE}docs/${l}/`])) as Record<Lang, string>;
 Astro.redirect(target);
 ---
 <!doctype html>
@@ -10,6 +11,10 @@ Astro.redirect(target);
     <meta charset="utf-8" />
     <meta http-equiv="refresh" content={`0; url=${target}`} />
     <link rel="canonical" href={target} />
+    {Object.entries(alternates).map(([code, href]) => (
+      <link rel="alternate" hreflang={code} href={href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={alternates[DEFAULT_LANG]} />
     <title>Redirecting…</title>
   </head>
   <body>

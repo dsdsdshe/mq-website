@@ -1,11 +1,23 @@
 ---
 import "../styles/tokens.css";
 import "../styles/global.css";
-const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum', lang = 'en' } = Astro.props;
+import LanguageSwitcher from "../components/LanguageSwitcher.astro";
+import { NAV_MESSAGES } from "../locales/nav";
+import { stripBase, withBase, pathForLang } from "../config/urls";
+import { LANGS, DEFAULT_LANG, type Lang } from "../config/i18n";
+const { title = 'MindQuantum', description = 'Quantum computing with MindQuantum', lang = 'en' } = Astro.props as { title?: string; description?: string; lang?: Lang };
 const BASE = import.meta.env.BASE_URL || '/';
 // In dev, Vite/Astro dev server doesn't serve directory indexes from public.
 // Append `index.html` to API links during dev; keep clean trailing slashes in prod.
 const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
+const nav = NAV_MESSAGES[lang as Lang];
+
+// Build canonical and hreflang alternates
+const pathUnbased = stripBase(Astro.url.pathname, BASE);
+const hrefFor = (l: Lang) => withBase(pathForLang(pathUnbased, l), BASE);
+const alternates = Object.fromEntries(LANGS.map((l) => [l, hrefFor(l)])) as Record<Lang, string>;
+const xDefaultHref = hrefFor(DEFAULT_LANG);
+const canonicalHref = hrefFor(lang as Lang);
 ---
 <!doctype html>
 <html lang={lang}>
@@ -14,6 +26,11 @@ const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={`${BASE}favicon.svg`} />
+    <link rel="canonical" href={canonicalHref} />
+    {Object.entries(alternates).map(([code, href]) => (
+      <link rel="alternate" hreflang={code} href={href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={xDefaultHref} />
     <title>{title}</title>
   </head>
   <body>
@@ -24,12 +41,10 @@ const API_SUFFIX = import.meta.env.DEV ? 'index.html' : '';
           <span>MindQuantum</span>
         </a>
         <div class="spacer" />
-        <a href={`${BASE}zh/`}>首页 (中文)</a>
-        <a href={`${BASE}docs/en/`}>Docs (EN)</a>
-        <a href={`${BASE}docs/zh/`}>文档 (中文)</a>
-        <a href={`${BASE}docs/api/en/${API_SUFFIX}`}>API (EN)</a>
-        <a href={`${BASE}docs/api/zh/${API_SUFFIX}`}>API (中文)</a>
+        <a href={`${BASE}docs/${lang}/`}>{nav.docs}</a>
+        <a href={`${BASE}docs/api/${lang}/${API_SUFFIX}`}>{nav.api}</a>
         <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        <LanguageSwitcher lang={lang} />
       </nav>
     </header>
     <main class="container">

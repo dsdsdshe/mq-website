@@ -1,0 +1,21 @@
+---
+import type { Lang } from "../config/i18n";
+import { altLang } from "../config/urls";
+import { stripBase, withBase, pathForLang } from "../config/urls";
+
+const { lang, compact = true } = Astro.props as { lang: Lang; compact?: boolean };
+const BASE = import.meta.env.BASE_URL || '/';
+const pathUnbased = stripBase(Astro.url.pathname, BASE);
+const other = altLang(lang);
+const href = withBase(pathForLang(pathUnbased, other), BASE);
+const label = other === "en" ? "EN" : "中文";
+---
+<a class={"lang-switcher"} href={href} aria-label={`Switch language to ${label}`}>
+  {compact ? label : (other === 'en' ? 'English' : '中文')}
+</a>
+
+<style>
+  .lang-switcher { color: var(--mq-text-muted); text-decoration: none; font-weight: 600; padding: .25rem .5rem; border-radius: .375rem; }
+  .lang-switcher:hover { color: var(--mq-text); background: var(--mq-surface-2); }
+</style>
+
