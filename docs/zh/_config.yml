@@ -16,6 +16,7 @@ execute:
 
 html:
   favicon: ../_static/favicon.svg
+  use_thebe: true
   use_edit_page_button: false
   use_repository_button: false
   use_issues_button: false
@@ -24,6 +25,13 @@ html:
     <a href="../en/" class="mq-home-link">English</a>
   extra_footer: |
     <div class="mq-footer">© {current_year} MindQuantum.</div>
+
+launch_buttons:
+  thebe: true
+  binderhub_url: https://mybinder.org
+  notebook_interface: classic
+  repository_url: https://github.com/ORG/REPO
+  branch: main
 
 theme:
   name: sphinx_book_theme
@@ -42,6 +50,7 @@ sphinx:
     - sphinx.ext.mathjax
     - sphinx.ext.viewcode
     - IPython.sphinxext.ipython_console_highlighting
+    - sphinx_thebe
   config:
     language: zh_CN
     html_search_language: zh
@@ -49,3 +58,12 @@ sphinx:
     html_css_files:
       - mq-variables.css
       - mq-theme.css
+    thebe_config:
+      repository_url: https://github.com/ORG/REPO
+      repository_branch: main
+      binderhub_url: https://mybinder.org
+      kernel_name: python3
+      path_to_docs: docs/zh
+      selector: "div.cell"
+      codemirror_theme: "abcdef"
+      always_load: false

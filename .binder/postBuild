@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euxo pipefail
+
+# Ensure a Python kernel is available and named clearly for Thebe
+python - <<'PY'
+import sys
+try:
+    import ipykernel
+    from ipykernel.kernelspec import install
+    install(user=True, name='python3', display_name='Python 3 (MindQuantum)')
+except Exception as e:
+    print('Kernel install step skipped or failed:', e, file=sys.stderr)
+PY
+

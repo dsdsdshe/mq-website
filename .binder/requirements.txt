@@ -1,0 +1,10 @@
+ipykernel>=6
+notebook>=7
+numpy
+scipy
+matplotlib
+
+# MindQuantum stack (update pins as needed; Binder build times may be long)
+# mindspore
+mindquantum
+

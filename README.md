@@ -25,7 +25,7 @@ npm install
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install jupyter-book sphinx-copybutton sphinx-design mindspore mindquantum
+pip install jupyter-book sphinx-copybutton sphinx-design sphinx-thebe mindspore mindquantum
 ```
 
 3) Sync docs content (optional during dev)
@@ -108,3 +108,18 @@ The extension avoids monkey-patches and implements stable `mscnautosummary`/`ms*
   - Sphinx API projects: `docs/api-en` and `docs/api-zh`
   - Shared assets: `docs/_ext`, `docs/_static`, `docs/_templates`
 - `scripts/` – helper scripts (token sync, upstream sync, local build).
+
+## Interactive Tutorials (Thebe + Binder)
+
+Tutorial pages are now Thebe-enabled so users can click Run on code cells directly on the page. This uses Binder to start a live Jupyter kernel per user session.
+
+- Toggle: A “Launch/Activate” button appears on each tutorial page to initialize Thebe. Once activated, each code cell shows a Run button.
+- Scope: Execution is client-initiated; notebooks do not auto-execute. This keeps builds deterministic and scales better for traffic.
+- Binder env: The repo includes a minimal Binder spec in `.binder/` (requirements + postBuild). Update it to a tested MindQuantum environment.
+- Config: Both `docs/en/_config.yml` and `docs/zh/_config.yml` define `launch_buttons` and `thebe_config`. Set `repository_url` and `branch` to a GitHub repo that contains your Binder environment (often this repo).
+
+Local notes and best practices:
+- Ensure `sphinx-thebe` is installed. If needed, install explicitly: `pip install sphinx-thebe`.
+- Binder cold starts can take minutes; subsequent launches are cached by Binder. Consider pinning wheels and minimizing heavy deps.
+- If MindQuantum/MindSpore require special wheels or channels, prefer a `.binder/Dockerfile` for reproducible, faster starts.
+- Avoid `html.use_thebe: true` with `always_load: true` for large books; keep user-triggered activation to conserve Binder capacity.
