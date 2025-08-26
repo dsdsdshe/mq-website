@@ -1,5 +1,7 @@
 ipykernel>=6
-notebook>=7
+notebook<7
+jupyterlab<4
+jupyter_server<2
 numpy
 scipy
 matplotlib
