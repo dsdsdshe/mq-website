@@ -30,7 +30,7 @@ launch_buttons:
   thebe: true
   binderhub_url: https://mybinder.org
   notebook_interface: classic
-  repository_url: https://github.com/ORG/REPO
+  repository_url: https://github.com/dsdsdshe/mq-website
   branch: main
 
 theme:
@@ -59,7 +59,7 @@ sphinx:
       - mq-variables.css
       - mq-theme.css
     thebe_config:
-      repository_url: https://github.com/ORG/REPO
+      repository_url: https://github.com/dsdsdshe/mq-website
       repository_branch: main
       binderhub_url: https://mybinder.org
       kernel_name: python3

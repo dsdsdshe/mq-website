@@ -30,8 +30,7 @@ launch_buttons:
   thebe: true
   binderhub_url: https://mybinder.org
   notebook_interface: classic
-  # Update this to the GitHub repo that hosts the Binder environment for MindQuantum
-  repository_url: https://github.com/ORG/REPO
+  repository_url: https://github.com/dsdsdshe/mq-website
   branch: main
 
 theme:
@@ -59,8 +58,7 @@ sphinx:
       - mq-variables.css
       - mq-theme.css
     thebe_config:
-      # Thebe + Binder configuration. Update repository_url/branch to match your Binder-ready repo.
-      repository_url: https://github.com/ORG/REPO
+      repository_url: https://github.com/dsdsdshe/mq-website
       repository_branch: main
       binderhub_url: https://mybinder.org
       kernel_name: python3
