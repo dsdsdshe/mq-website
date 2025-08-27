@@ -534,9 +534,28 @@ const TEMPLATE_STYLES = /* css */ `
     z-index: 1000;
   }
   
-  button, select {
+  button, select, input {
     font-family: inherit;
     font-size: inherit;
+  }
+  
+  .mqcb-param-dialog input {
+    border: 1px solid var(--mq-border);
+    background: var(--mq-surface);
+    color: var(--mq-text);
+    border-radius: 0.25rem;
+  }
+  
+  .mqcb-param-dialog button {
+    background: var(--mq-surface);
+    color: var(--mq-text);
+    border: 1px solid var(--mq-border);
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+  
+  .mqcb-param-dialog button:hover {
+    background: var(--mq-surface-2);
   }
 
   @media (max-width: 960px) {
@@ -814,6 +833,19 @@ class QuantumCircuitElement extends HTMLElement {
       // Get label from registry for single-qubit gates
       const gateDef = GATE_REGISTRY[g.type];
       chip.textContent = gateDef?.label || g.type;
+      
+      // Add angle display for rotation gates
+      if ((g.type === "RX" || g.type === "RY" || g.type === "RZ") && g.params) {
+        const paramName = g.type === "RZ" ? "phi" : "theta";
+        const angle = g.params[paramName];
+        if (angle !== undefined) {
+          // Display angle as fraction of π
+          const piValue = angle / Math.PI;
+          const displayValue = piValue.toFixed(2).replace(/\.?0+$/, "");
+          chip.textContent = `${gateDef?.label}(${displayValue}π)`;
+          chip.style.fontSize = "0.65rem";
+        }
+      }
     }
     
     chip.setAttribute("data-id", g.id);
@@ -872,6 +904,31 @@ class QuantumCircuitElement extends HTMLElement {
   }
 
   private onGateClick(id: string) {
+    // Check if this is a rotation gate - if so, allow editing angle
+    const gate = this.findGateById(id);
+    if (gate && (gate.type === "RX" || gate.type === "RY" || gate.type === "RZ")) {
+      // Find the gate position
+      let t = -1, q = -1;
+      for (let ti = 0; ti < this.circuit.columns.length; ti++) {
+        for (let qi = 0; qi < this.circuit.nQubits; qi++) {
+          if (this.circuit.columns[ti].items[qi]?.id === id) {
+            t = ti;
+            q = qi;
+            break;
+          }
+        }
+        if (t >= 0) break;
+      }
+      
+      if (t >= 0 && q >= 0) {
+        // Remove old gate and prompt for new angle
+        this.circuit = removeGateById(this.circuit, id);
+        this.renderGrid();
+        this.promptRotationAngle(t, q, gate.type as "RX" | "RY" | "RZ", id);
+        return;
+      }
+    }
+    
     this.selectedGateId = this.selectedGateId === id ? null : id;
     this.renderGrid();
     // Focus the canvas to enable keyboard shortcuts
@@ -994,6 +1051,11 @@ class QuantumCircuitElement extends HTMLElement {
         this.renderGrid();
         this.promptSecondQubit(t, id, q, "SWAP");
         return;
+      } else if (gateType === "RX" || gateType === "RY" || gateType === "RZ") {
+        // Rotation gates need angle parameter
+        const id = `g_${Math.random().toString(36).slice(2)}`;
+        this.promptRotationAngle(t, q, gateType, id);
+        return;
       } else {
         const id = `g_${Math.random().toString(36).slice(2)}`;
         const placement: GatePlacement = { type: gateType, targets: [q], id };
@@ -1063,6 +1125,100 @@ class QuantumCircuitElement extends HTMLElement {
       this.autoRunDebounced();
     };
     canvas.addEventListener("click", handler);
+  }
+
+  private promptRotationAngle(t: number, q: number, gateType: "RX" | "RY" | "RZ", id: string) {
+    // Create a simple dialog for angle input
+    const dialog = document.createElement("div");
+    dialog.className = "mqcb-param-dialog";
+    dialog.style.cssText = `
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--mq-surface-2);
+      border: 1px solid var(--mq-border);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: var(--mq-shadow);
+      z-index: 1000;
+    `;
+    
+    const label = document.createElement("label");
+    label.style.display = "block";
+    label.style.marginBottom = "0.5rem";
+    label.textContent = `Enter angle for ${gateType} (in units of π):`;
+    
+    const input = document.createElement("input");
+    input.type = "number";
+    input.value = "0.25";
+    input.step = "0.125";
+    input.style.cssText = `
+      width: 100%;
+      padding: 0.25rem;
+      margin-bottom: 0.5rem;
+    `;
+    
+    const btnContainer = document.createElement("div");
+    btnContainer.style.cssText = "display: flex; gap: 0.5rem; justify-content: flex-end;";
+    
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.style.cssText = "padding: 0.25rem 0.5rem;";
+    
+    const applyBtn = document.createElement("button");
+    applyBtn.textContent = "Apply";
+    applyBtn.style.cssText = "padding: 0.25rem 0.5rem;";
+    
+    dialog.appendChild(label);
+    dialog.appendChild(input);
+    btnContainer.appendChild(cancelBtn);
+    btnContainer.appendChild(applyBtn);
+    dialog.appendChild(btnContainer);
+    
+    const canvas = this.qs<HTMLElement>(".mqcb-canvas");
+    canvas.appendChild(dialog);
+    input.focus();
+    input.select();
+    
+    const cleanup = () => {
+      dialog.remove();
+    };
+    
+    const apply = () => {
+      const value = parseFloat(input.value);
+      if (isNaN(value)) {
+        this.toast("Invalid angle value");
+        return;
+      }
+      
+      const paramName = gateType === "RZ" ? "phi" : "theta";
+      const placement: GatePlacement = { 
+        type: gateType, 
+        targets: [q], 
+        id,
+        params: { [paramName]: value * Math.PI }
+      };
+      
+      const valid = validatePlacement(this.circuit, t, placement).ok;
+      if (!valid) {
+        this.toast("Invalid placement");
+        cleanup();
+        return;
+      }
+      
+      this.circuit = addGate(this.circuit, t, placement);
+      this.renderGrid();
+      this.autoRunDebounced();
+      cleanup();
+    };
+    
+    cancelBtn.addEventListener("click", cleanup);
+    applyBtn.addEventListener("click", apply);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") apply();
+      if (e.key === "Escape") cleanup();
+    });
   }
 
   private promptSecondQubit(t: number, gateId: string, firstQ: number, gateType: "CZ" | "SWAP") {
