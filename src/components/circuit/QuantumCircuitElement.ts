@@ -98,19 +98,6 @@ const TEMPLATE_STYLES = /* css */ `
     background: var(--mq-surface); 
     color: var(--mq-text); 
   }
-  
-  .mqcb-run { 
-    padding: .45rem .75rem; 
-    border-radius: .5rem; 
-    border: 1px solid var(--mq-border); 
-    background: var(--mq-primary); 
-    color: var(--mq-primary-contrast); 
-    cursor: pointer;
-  }
-  
-  .mqcb-run:hover {
-    filter: brightness(1.1);
-  }
 
   .mqcb-canvas { 
     overflow-x: auto; 
@@ -321,7 +308,6 @@ const TEMPLATE_HTML = /* html */ `
               .join("")}
           </select>
         </label>
-        <button class="mqcb-run" type="button" data-label="run">Run</button>
       </div>
     </div>
 
@@ -330,7 +316,6 @@ const TEMPLATE_HTML = /* html */ `
     </div>
 
     <div class="mqcb-results" aria-live="polite">
-      <div class="mqcb-results-header" data-label="results">Results</div>
       <div class="mqcb-results-body">
         <div class="mqcb-probs">
           <div class="mqcb-subheading" data-label="probs">Measurement Probabilities</div>
@@ -387,17 +372,11 @@ class QuantumCircuitElement extends HTMLElement {
   private applyLabels() {
     const labels = {
       qubits: this.getAttribute("data-label-qubits") || this.dataset.labelQubits || "Qubits",
-      run: this.getAttribute("data-label-run") || this.dataset.labelRun || "Run",
-      results: this.getAttribute("data-label-results") || this.dataset.labelResults || "Results",
       probs: this.getAttribute("data-label-probs") || this.dataset.labelProbs || "Measurement Probabilities",
     };
     const q = this.root.querySelector<HTMLElement>('[data-label="qubits"]');
-    const r = this.root.querySelector<HTMLElement>('[data-label="run"]');
-    const res = this.root.querySelector<HTMLElement>('[data-label="results"]');
     const pr = this.root.querySelector<HTMLElement>('[data-label="probs"]');
     if (q) q.textContent = labels.qubits;
-    if (r) r.textContent = labels.run;
-    if (res) res.textContent = labels.results;
     if (pr) pr.textContent = labels.probs;
   }
 
@@ -405,9 +384,6 @@ class QuantumCircuitElement extends HTMLElement {
     const qubitsSel = this.qs<HTMLSelectElement>(".mqcb-qubits");
     qubitsSel.value = String(this.circuit.nQubits);
     qubitsSel.addEventListener("change", () => this.onChangeQubits(parseInt(qubitsSel.value, 10)));
-
-    const runBtn = this.qs<HTMLButtonElement>(".mqcb-run");
-    runBtn.addEventListener("click", () => this.runSimulation());
 
     const canvas = this.qs<HTMLElement>(".mqcb-canvas");
     canvas.addEventListener("keydown", (e) => this.onCanvasKeyDown(e as KeyboardEvent));
@@ -774,17 +750,15 @@ class QuantumCircuitElement extends HTMLElement {
   }
 
   private async runSimulation() {
-    this.toggleResultsLoading(true);
-    
     try {
       // Run simulation directly in main thread since quantum-circuit needs DOM APIs
       const { buildAndRun } = await import("../../lib/sim/adapter");
       const payload = serializeCircuit(this.circuit);
       const result = await buildAndRun(payload);
-      this.onWorkerMessage(result);
+      this.onSimulationResult(result);
     } catch (err: any) {
       console.error("Simulation error:", err);
-      this.onWorkerMessage({
+      this.onSimulationResult({
         error: { 
           code: "sim_error", 
           message: err.message || "Simulation failed"
@@ -793,8 +767,7 @@ class QuantumCircuitElement extends HTMLElement {
     }
   }
 
-  private onWorkerMessage(res: RunResult) {
-    this.toggleResultsLoading(false);
+  private onSimulationResult(res: RunResult) {
     const errBox = this.qs<HTMLDivElement>(".mqcb-error");
     const probsList = this.qs<HTMLDivElement>(".mqcb-problist");
     const stateBox = this.qs<HTMLDivElement>(".mqcb-state");
@@ -808,12 +781,6 @@ class QuantumCircuitElement extends HTMLElement {
     errBox.hidden = true;
     probsList.innerHTML = this.renderProbList(res.probs || []);
     stateBox.innerHTML = this.renderStatevector(res.statevector);
-  }
-
-  private toggleResultsLoading(loading: boolean) {
-    const header = this.qs<HTMLDivElement>(".mqcb-results-header");
-    const base = this.getAttribute("data-label-results") || this.dataset.labelResults || "Results";
-    header.textContent = loading ? `${base} (running…)` : base;
   }
 
   private renderProbList(probs: number[]) {

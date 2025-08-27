@@ -64,7 +64,6 @@ export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
 
     // Get statevector using stateAsArray
     const stateArray = qc.stateAsArray(false); // false = include all amplitudes
-    console.log("State array:", stateArray);
     
     if (!stateArray || !Array.isArray(stateArray)) {
       throw new Error("Unable to read statevector from quantum-circuit");
