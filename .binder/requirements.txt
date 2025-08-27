@@ -2,6 +2,7 @@ ipykernel>=6
 notebook<7
 jupyterlab<4
 jupyter_server<2
+jupyter-resource-usage<1.0.0
 numpy
 scipy
 matplotlib
