@@ -17,12 +17,10 @@ export type BuildAndRunResult = {
 
 export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
   try {
-    // Dynamic import kept here so worker is the only place touching the dependency.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - module provided at runtime after installation
-    // Use Vite ignore to avoid bundling resolution until runtime
-    const mod = await import(/* @vite-ignore */ "quantum-circuit");
-    const QuantumCircuit = mod.default || mod.QuantumCircuit || mod;
+    // Dynamic import for quantum-circuit library (CommonJS module)
+    // @ts-ignore - module types not available
+    const module = await import("quantum-circuit");
+    const QuantumCircuit = module.default || module;
     if (!QuantumCircuit) throw new Error("QuantumCircuit not found in module export");
 
     const qc = new QuantumCircuit(c.nQubits);
@@ -49,19 +47,12 @@ export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
             qc.addGate("z", t, gp.targets);
             break;
           case "CNOT": {
-            // Many libraries model CNOT as controlled X
+            // CNOT is called "cx" in quantum-circuit library
             const target = gp.targets[0];
             const controls = gp.controls || [];
-            // Try common method signatures; fall back to a controlled addGate API if present
-            if (typeof qc.addGate === "function") {
-              // Some versions accept control wires via options
-              try {
-                qc.addGate("cx", t, [controls[0], target]);
-              } catch (_) {
-                // Try adding control then target as separate ops if supported
-                // This depends on the specific library. If it fails, let it throw to be caught below.
-                qc.addGate("cnot", t, [controls[0], target]);
-              }
+            if (controls.length > 0) {
+              // Wire order for cx: [control, target]
+              qc.addGate("cx", t, [controls[0], target]);
             }
             break;
           }
@@ -69,36 +60,31 @@ export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
       }
     }
 
-    // Run and get statevector (depends on library API)
-    let statevector: { re: number[]; im: number[] } | undefined = undefined;
-    if (typeof qc.run === "function") qc.run();
-    if (typeof qc.state === "function") {
-      const st = qc.state();
-      // Normalize into re/im arrays
-      if (Array.isArray(st)) {
-        const re = st.map((c: any) => (typeof c === "number" ? c : c.re ?? c[0] ?? 0));
-        const im = st.map((c: any) => (typeof c === "number" ? 0 : c.im ?? c[1] ?? 0));
-        statevector = { re, im };
-      } else if (st && st.re && st.im) {
-        statevector = { re: st.re, im: st.im };
+    // Run the circuit
+    qc.run();
+
+    // Get statevector using stateAsArray
+    const stateArray = qc.stateAsArray(false); // false = include all amplitudes
+    if (!stateArray || !Array.isArray(stateArray)) {
+      throw new Error("Unable to read statevector from quantum-circuit");
+    }
+
+    // Extract re/im from the complex amplitudes
+    const re: number[] = [];
+    const im: number[] = [];
+    for (const item of stateArray) {
+      if (item && typeof item === 'object' && 'amplitude' in item) {
+        const amp = item.amplitude;
+        re.push(amp.re || 0);
+        im.push(amp.im || 0);
+      } else {
+        re.push(0);
+        im.push(0);
       }
     }
 
-    if (!statevector && typeof qc.getStateVector === "function") {
-      const vec = qc.getStateVector();
-      if (vec && vec.re && vec.im) statevector = { re: vec.re, im: vec.im };
-    }
-
-    if (!statevector && typeof qc.stateAsArray === "function") {
-      const arr = qc.stateAsArray();
-      if (Array.isArray(arr)) {
-        const re = arr.map((x: any) => (typeof x === "number" ? x : x.re ?? x[0] ?? 0));
-        const im = arr.map((x: any) => (typeof x === "number" ? 0 : x.im ?? x[1] ?? 0));
-        statevector = { re, im };
-      }
-    }
-
-    if (!statevector) throw new Error("Unable to read statevector from quantum-circuit");
+    const statevector = { re, im };
+    if (!statevector.re.length) throw new Error("Unable to read statevector from quantum-circuit");
 
     const probs = statevector.re.map((re, i) => re * re + statevector!.im[i] * statevector!.im[i]);
     return { statevector, probs };

@@ -1,7 +1,7 @@
 // Vanilla web component implementing the interactive circuit builder
 // UI logic is encapsulated here; simulation runs in a web worker.
 
-import type { Circuit, Column, GatePlacement, GateType } from "../../lib/circuit/model";
+import type { Circuit, GatePlacement, GateType } from "../../lib/circuit/model";
 import { createEmptyCircuit, ensureColumns, addGate, removeGateById, moveGateById, validatePlacement, serializeCircuit } from "../../lib/circuit/model";
 import { GATE_REGISTRY, type GateDef } from "../../lib/circuit/gates";
 
@@ -16,7 +16,297 @@ const MIN_QUBITS = 2;
 const DEFAULT_QUBITS = 3;
 const DEFAULT_COLUMNS = 12;
 
+const TEMPLATE_STYLES = /* css */ `
+<style>
+  :host { 
+    display: block; 
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+  
+  /* Core variables with fallbacks */
+  :host {
+    --mq-primary: oklch(61% 0.17 260);
+    --mq-primary-contrast: #ffffff;
+    --mq-bg: oklch(99% 0 0);
+    --mq-surface: oklch(98% 0.01 240);
+    --mq-surface-2: oklch(97% 0.01 240);
+    --mq-border: color-mix(in oklab, oklch(45% 0.02 250), transparent 65%);
+    --mq-text: oklch(27% 0.02 250);
+    --mq-text-muted: oklch(45% 0.02 250);
+    --mq-radius: 12px;
+    --mq-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px rgba(0,0,0,.06);
+    --mq-font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    --mq-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+  
+  .mqcb-root { 
+    border: 1px solid var(--mq-border); 
+    border-radius: var(--mq-radius); 
+    background: var(--mq-surface-2); 
+    box-shadow: var(--mq-shadow); 
+  }
+  
+  .mqcb-topbar { 
+    display: flex; 
+    gap: 1rem; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: .75rem; 
+    border-bottom: 1px solid var(--mq-border); 
+  }
+  
+  .mqcb-palette { 
+    display: flex; 
+    gap: .5rem; 
+    flex-wrap: wrap; 
+  }
+  
+  .mqcb-gate { 
+    border: 1px solid var(--mq-border); 
+    background: var(--mq-surface); 
+    color: var(--mq-text); 
+    border-radius: .5rem; 
+    padding: .4rem .6rem; 
+    cursor: grab; 
+  }
+  
+  .mqcb-gate:hover { 
+    filter: brightness(1.05); 
+  }
+  
+  .mqcb-g-h { background: color-mix(in oklab, var(--mq-primary), white 80%); }
+  .mqcb-g-x { background: color-mix(in oklab, var(--mq-primary), white 70%); }
+  .mqcb-g-z { background: color-mix(in oklab, var(--mq-primary), white 60%); }
+  .mqcb-g-cnot { background: color-mix(in oklab, var(--mq-primary), white 50%); }
+
+  .mqcb-controls { 
+    display: flex; 
+    gap: .5rem; 
+    align-items: center; 
+  }
+  
+  .mqcb-label { 
+    margin-right: .25rem; 
+    color: var(--mq-text-muted); 
+    font-size: .9rem; 
+  }
+  
+  .mqcb-qubits { 
+    padding: .35rem .5rem; 
+    border-radius: .5rem; 
+    border: 1px solid var(--mq-border); 
+    background: var(--mq-surface); 
+    color: var(--mq-text); 
+  }
+  
+  .mqcb-run { 
+    padding: .45rem .75rem; 
+    border-radius: .5rem; 
+    border: 1px solid var(--mq-border); 
+    background: var(--mq-primary); 
+    color: var(--mq-primary-contrast); 
+    cursor: pointer;
+  }
+  
+  .mqcb-run:hover {
+    filter: brightness(1.1);
+  }
+
+  .mqcb-canvas { 
+    overflow-x: auto; 
+    padding: .75rem; 
+  }
+  
+  .mqcb-grid { 
+    display: grid; 
+    gap: 4px; 
+    align-items: center; 
+  }
+  
+  .mqcb-row { 
+    display: contents; 
+  }
+  
+  .mqcb-header .mqcb-time { 
+    text-align: center; 
+    color: var(--mq-text-muted); 
+    font-size: .85rem; 
+    padding: .25rem 0; 
+  }
+  
+  .mqcb-cell { 
+    min-height: 42px; 
+    position: relative; 
+  }
+  
+  .mqcb-wirelabel { 
+    color: var(--mq-text-muted); 
+    font-size: .9rem; 
+    padding: .25rem .5rem; 
+  }
+  
+  .mqcb-drop { 
+    background: var(--mq-surface); 
+    border: 1px dashed var(--mq-border); 
+    border-radius: .5rem; 
+  }
+  
+  .mqcb-drop.over.valid { 
+    outline: 2px solid color-mix(in oklab, var(--mq-primary), white 35%); 
+  }
+  
+  .mqcb-drop.over.invalid { 
+    outline: 2px solid oklch(65% 0.22 25); 
+  }
+  
+  .mqcb-drop.maybe { 
+    background-image: linear-gradient(45deg, transparent 35%, color-mix(in oklab, var(--mq-primary), white 85%) 35%, color-mix(in oklab, var(--mq-primary), white 85%) 65%, transparent 65%); 
+    background-size: 12px 12px; 
+  }
+
+  .mqcb-wire { 
+    pointer-events: none; 
+    position: absolute; 
+    left: 0; 
+    right: 0; 
+    top: calc(50% - 1px); 
+    height: 2px; 
+    background: var(--mq-border); 
+  }
+
+  .mqcb-chip { 
+    position: absolute; 
+    left: 50%; 
+    top: 50%; 
+    transform: translate(-50%, -50%); 
+    border: 1px solid var(--mq-border); 
+    border-radius: .4rem; 
+    padding: .25rem .5rem; 
+    min-width: 28px; 
+    background: var(--mq-surface); 
+    cursor: grab; 
+    text-align: center;
+    color: var(--mq-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .mqcb-chip.selected { 
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--mq-primary), white 50%); 
+  }
+  
+  .mqcb-chip.control { 
+    background: color-mix(in oklab, var(--mq-primary), white 60%); 
+  }
+  
+  .mqcb-chip.target { 
+    background: color-mix(in oklab, var(--mq-primary), white 40%); 
+  }
+
+  .mqcb-drop.has-connector::before { 
+    content: ""; 
+    position: absolute; 
+    left: calc(50% - 1px); 
+    top: -50%; 
+    bottom: -50%; 
+    width: 2px; 
+    background: var(--mq-primary); 
+    opacity: .4; 
+  }
+
+  .mqcb-footer .mqcb-trash { 
+    border: 1px dashed var(--mq-border); 
+    border-radius: .5rem; 
+    background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,.04) 6px, rgba(0,0,0,.04) 12px); 
+    min-height: 24px; 
+  }
+  
+  .mqcb-footer .mqcb-trash.over { 
+    outline: 2px solid oklch(65% 0.22 25); 
+  }
+
+  .mqcb-canvas.selecting-control .mqcb-drop { 
+    outline: 1px dashed color-mix(in oklab, var(--mq-primary), white 40%); 
+  }
+
+  .mqcb-results { 
+    border-top: 1px solid var(--mq-border); 
+    padding: .75rem; 
+    background: var(--mq-surface); 
+    border-bottom-left-radius: var(--mq-radius); 
+    border-bottom-right-radius: var(--mq-radius); 
+  }
+  
+  .mqcb-results-header { 
+    font-weight: 600; 
+    margin-bottom: .5rem; 
+    color: var(--mq-text);
+  }
+  
+  .mqcb-subheading { 
+    font-weight: 600; 
+    margin: .5rem 0; 
+    color: var(--mq-text);
+  }
+  
+  .mqcb-prob { 
+    display: grid; 
+    grid-template-columns: 5ch 1fr auto; 
+    gap: .5rem; 
+    align-items: center; 
+    margin: .25rem 0; 
+  }
+  
+  .mqcb-prob .bar { 
+    height: 6px; 
+    border-radius: 4px; 
+    background: color-mix(in oklab, var(--mq-primary), white 40%); 
+    width: var(--w, 1%); 
+  }
+  
+  .mqcb-prob .val { 
+    color: var(--mq-text-muted); 
+    font-variant-numeric: tabular-nums; 
+  }
+  
+  .mqcb-amp { 
+    font-family: var(--mq-font-mono); 
+    font-size: .9rem; 
+    color: var(--mq-text-muted); 
+  }
+  
+  .mqcb-error { 
+    color: oklch(65% 0.22 25); 
+  }
+
+  .mqcb-toast { 
+    position: fixed; 
+    right: 1rem; 
+    bottom: 1rem; 
+    background: var(--mq-surface-2); 
+    color: var(--mq-text); 
+    border: 1px solid var(--mq-border); 
+    padding: .5rem .75rem; 
+    border-radius: .5rem; 
+    box-shadow: var(--mq-shadow); 
+    z-index: 1000;
+  }
+  
+  button, select {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  @media (max-width: 960px) {
+    .mqcb-cell { 
+      min-width: 44px; 
+    }
+  }
+</style>
+`;
+
 const TEMPLATE_HTML = /* html */ `
+  ${TEMPLATE_STYLES}
   <div class="mqcb-root" part="root">
     <div class="mqcb-topbar">
       <div class="mqcb-palette" role="listbox" aria-label="Gate Palette">
@@ -93,8 +383,18 @@ class QuantumCircuitElement extends HTMLElement {
       try {
         this.worker = new Worker(new URL("../../lib/sim/worker.ts", import.meta.url), { type: "module" });
         this.worker.onmessage = (e: MessageEvent<RunResult>) => this.onWorkerMessage(e.data);
+        this.worker.onerror = (err) => {
+          console.error("Worker error:", err);
+          this.onWorkerMessage({
+            error: { code: "worker_error", message: "Worker failed: " + err.message }
+          });
+        };
       } catch (err) {
-        console.warn("Worker setup failed", err);
+        console.error("Worker setup failed", err);
+        // Fallback: show error in UI
+        this.onWorkerMessage({
+          error: { code: "worker_setup_error", message: "Unable to initialize quantum simulator" }
+        });
       }
     }
   }
@@ -174,6 +474,7 @@ class QuantumCircuitElement extends HTMLElement {
     // Build grid
     const table = document.createElement("div");
     table.className = "mqcb-grid";
+    table.style.gridTemplateColumns = `auto repeat(${this.circuit.columns.length}, minmax(48px, 1fr))`;
 
     // Header row (time indices)
     const header = document.createElement("div");
@@ -296,7 +597,7 @@ class QuantumCircuitElement extends HTMLElement {
     this.highlightValidTargetsForMove(id);
   }
 
-  private highlightValidTargetsForMove(id: string) {
+  private highlightValidTargetsForMove(_id: string) {
     // For simplicity, allow moving to any empty cell in any column; validation on drop
     const cells = this.root.querySelectorAll<HTMLElement>(`.mqcb-cell.mqcb-drop`);
     cells.forEach((c) => c.classList.add("maybe"));
