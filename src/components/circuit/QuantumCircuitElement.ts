@@ -388,19 +388,18 @@ const TEMPLATE_STYLES = /* css */ `
     background: #000 !important;
   }
   
-  /* SWAP gate - X symbols on both qubits (same size as CNOT target) */
+  /* SWAP gate - X symbols on both qubits (no circle, just crosses) */
   .mqcb-chip.swap-x {
     position: absolute !important;
     left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
-    background: white !important;
-    border: 2px solid #333 !important;
-    width: 24px !important;
-    height: 24px !important;
+    background: transparent !important;
+    border: none !important;
+    width: 20px !important;
+    height: 20px !important;
     padding: 0 !important;
-    border-radius: 50% !important;
-    min-width: 24px !important;
+    min-width: 20px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -416,24 +415,22 @@ const TEMPLATE_STYLES = /* css */ `
   }
   
   .mqcb-chip.swap-x::before {
-    width: 14px;
-    height: 2px;
+    width: 20px;
+    height: 3px;
     transform: rotate(45deg);
   }
   
   .mqcb-chip.swap-x::after {
-    width: 14px;
-    height: 2px;
+    width: 20px;
+    height: 3px;
     transform: rotate(-45deg);
-  }
-  
-  .mqcb-chip.swap-x:hover {
-    border-color: #000 !important;
   }
   
   .mqcb-chip.swap-x:hover::before,
   .mqcb-chip.swap-x:hover::after {
     background: #000;
+    width: 22px;
+    height: 3px;
   }
 
   /* CNOT/CZ/SWAP vertical connector line */
@@ -1132,7 +1129,7 @@ class QuantumCircuitElement extends HTMLElement {
     const dialog = document.createElement("div");
     dialog.className = "mqcb-param-dialog";
     dialog.style.cssText = `
-      position: absolute;
+      position: fixed;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
@@ -1176,8 +1173,8 @@ class QuantumCircuitElement extends HTMLElement {
     btnContainer.appendChild(applyBtn);
     dialog.appendChild(btnContainer);
     
-    const canvas = this.qs<HTMLElement>(".mqcb-canvas");
-    canvas.appendChild(dialog);
+    // Append to root for proper positioning
+    this.root.appendChild(dialog);
     input.focus();
     input.select();
     
