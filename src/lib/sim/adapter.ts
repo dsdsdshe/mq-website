@@ -17,10 +17,9 @@ export type BuildAndRunResult = {
 
 export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
   try {
-    // Dynamic import for quantum-circuit library (CommonJS module)
+    // Dynamically import quantum-circuit when needed
     // @ts-ignore - module types not available
-    const module = await import("quantum-circuit");
-    const QuantumCircuit = module.default || module;
+    const QuantumCircuit = (await import("quantum-circuit")).default;
     if (!QuantumCircuit) throw new Error("QuantumCircuit not found in module export");
 
     const qc = new QuantumCircuit(c.nQubits);
@@ -65,6 +64,8 @@ export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
 
     // Get statevector using stateAsArray
     const stateArray = qc.stateAsArray(false); // false = include all amplitudes
+    console.log("State array:", stateArray);
+    
     if (!stateArray || !Array.isArray(stateArray)) {
       throw new Error("Unable to read statevector from quantum-circuit");
     }
@@ -72,11 +73,14 @@ export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
     // Extract re/im from the complex amplitudes
     const re: number[] = [];
     const im: number[] = [];
+    
+    // The stateAsArray returns objects with index, indexBinStr, amplitude, amplitudeStr
     for (const item of stateArray) {
       if (item && typeof item === 'object' && 'amplitude' in item) {
         const amp = item.amplitude;
-        re.push(amp.re || 0);
-        im.push(amp.im || 0);
+        // amplitude is a complex number object with re and im properties
+        re.push(typeof amp.re === 'number' ? amp.re : 0);
+        im.push(typeof amp.im === 'number' ? amp.im : 0);
       } else {
         re.push(0);
         im.push(0);

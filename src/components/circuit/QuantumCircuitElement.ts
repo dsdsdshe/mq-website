@@ -358,7 +358,6 @@ class QuantumCircuitElement extends HTMLElement {
   private root!: ShadowRoot;
   private circuit: Circuit = createEmptyCircuit(DEFAULT_QUBITS, DEFAULT_COLUMNS);
   private selectedGateId: string | null = null;
-  private worker?: Worker;
   private autoRunDebounced: () => void;
 
   constructor() {
@@ -370,33 +369,13 @@ class QuantumCircuitElement extends HTMLElement {
   connectedCallback() {
     this.render();
     this.applyLabels();
-    this.ensureWorker();
+    // Worker disabled - using main thread for simulation
+    // this.ensureWorker();
     this.bindEvents();
   }
 
   disconnectedCallback() {
-    this.worker?.terminate();
-  }
-
-  private ensureWorker() {
-    if (!this.worker) {
-      try {
-        this.worker = new Worker(new URL("../../lib/sim/worker.ts", import.meta.url), { type: "module" });
-        this.worker.onmessage = (e: MessageEvent<RunResult>) => this.onWorkerMessage(e.data);
-        this.worker.onerror = (err) => {
-          console.error("Worker error:", err);
-          this.onWorkerMessage({
-            error: { code: "worker_error", message: "Worker failed: " + err.message }
-          });
-        };
-      } catch (err) {
-        console.error("Worker setup failed", err);
-        // Fallback: show error in UI
-        this.onWorkerMessage({
-          error: { code: "worker_setup_error", message: "Unable to initialize quantum simulator" }
-        });
-      }
-    }
+    // Cleanup if needed
   }
 
   private render() {
@@ -794,12 +773,24 @@ class QuantumCircuitElement extends HTMLElement {
     return null;
   }
 
-  private runSimulation() {
-    if (!this.worker) return;
-    const payload = serializeCircuit(this.circuit);
-    const msg = { type: "BuildAndRun", payload } as const;
+  private async runSimulation() {
     this.toggleResultsLoading(true);
-    this.worker.postMessage(msg);
+    
+    try {
+      // Run simulation directly in main thread since quantum-circuit needs DOM APIs
+      const { buildAndRun } = await import("../../lib/sim/adapter");
+      const payload = serializeCircuit(this.circuit);
+      const result = await buildAndRun(payload);
+      this.onWorkerMessage(result);
+    } catch (err: any) {
+      console.error("Simulation error:", err);
+      this.onWorkerMessage({
+        error: { 
+          code: "sim_error", 
+          message: err.message || "Simulation failed"
+        }
+      });
+    }
   }
 
   private onWorkerMessage(res: RunResult) {
