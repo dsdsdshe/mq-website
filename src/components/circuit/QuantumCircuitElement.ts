@@ -74,10 +74,27 @@ const TEMPLATE_STYLES = /* css */ `
     filter: brightness(1.05); 
   }
   
-  .mqcb-g-h { background: color-mix(in oklab, var(--mq-primary), white 80%); }
-  .mqcb-g-x { background: color-mix(in oklab, var(--mq-primary), white 70%); }
-  .mqcb-g-z { background: color-mix(in oklab, var(--mq-primary), white 60%); }
-  .mqcb-g-cnot { background: color-mix(in oklab, var(--mq-primary), white 50%); }
+  /* Gate-specific colors with better visual hierarchy */
+  .mqcb-g-h { 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+  }
+  .mqcb-g-x { 
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    font-weight: 600;
+  }
+  .mqcb-g-z { 
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    font-weight: 600;
+  }
+  .mqcb-g-cnot { 
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    font-weight: 600;
+  }
 
   .mqcb-controls { 
     display: flex; 
@@ -133,9 +150,15 @@ const TEMPLATE_STYLES = /* css */ `
   }
   
   .mqcb-drop { 
-    background: var(--mq-surface); 
-    border: 1px dashed var(--mq-border); 
-    border-radius: .5rem; 
+    background: linear-gradient(135deg, var(--mq-surface) 0%, color-mix(in oklab, var(--mq-surface), white 50%) 100%);
+    border: 1px solid color-mix(in oklab, var(--mq-border), transparent 50%);
+    border-radius: .5rem;
+    transition: all 0.2s ease;
+  }
+  
+  .mqcb-drop:hover {
+    background: linear-gradient(135deg, color-mix(in oklab, var(--mq-surface), white 50%) 0%, var(--mq-surface) 100%);
+    border-color: var(--mq-border);
   }
   
   .mqcb-drop.over.valid { 
@@ -154,11 +177,17 @@ const TEMPLATE_STYLES = /* css */ `
   .mqcb-wire { 
     pointer-events: none; 
     position: absolute; 
-    left: 0; 
-    right: 0; 
+    left: 10%; 
+    right: 10%; 
     top: calc(50% - 1px); 
     height: 2px; 
-    background: var(--mq-border); 
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      color-mix(in oklab, var(--mq-primary), white 70%) 10%,
+      color-mix(in oklab, var(--mq-primary), white 70%) 90%,
+      transparent 100%
+    );
+    opacity: 0.8;
   }
 
   .mqcb-chip { 
@@ -166,39 +195,135 @@ const TEMPLATE_STYLES = /* css */ `
     left: 50%; 
     top: 50%; 
     transform: translate(-50%, -50%); 
-    border: 1px solid var(--mq-border); 
-    border-radius: .4rem; 
-    padding: .25rem .5rem; 
-    min-width: 28px; 
-    background: var(--mq-surface); 
+    border: none;
+    border-radius: .5rem; 
+    padding: .35rem .6rem; 
+    min-width: 36px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     cursor: grab; 
     text-align: center;
-    color: var(--mq-text);
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .mqcb-chip:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Individual gate colors on the circuit */
+  .mqcb-chip.mqcb-g-h {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .mqcb-chip.mqcb-g-x {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+  
+  .mqcb-chip.mqcb-g-z {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+  
+  /* No background for CNOT as it uses control/target specific styles */
+  .mqcb-chip.mqcb-g-cnot {
+    background: transparent !important;
+    padding: 0;
+    box-shadow: none !important;
   }
   
   .mqcb-chip.selected { 
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--mq-primary), white 50%); 
+    outline: 2px dashed var(--mq-primary);
+    outline-offset: 2px;
   }
   
-  .mqcb-chip.control { 
-    background: color-mix(in oklab, var(--mq-primary), white 60%); 
+  /* CNOT specific styles - override the default chip styles completely */
+  .mqcb-chip.cnot-control { 
+    /* Solid filled circle for control */
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: #333 !important;
+    color: #333 !important;
+    font-size: 0 !important;
+    width: 12px !important;
+    height: 12px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    min-width: 12px !important;
+    box-shadow: none !important;
+    border: none !important;
   }
   
-  .mqcb-chip.target { 
-    background: color-mix(in oklab, var(--mq-primary), white 40%); 
+  .mqcb-chip.cnot-control:hover {
+    background: #000 !important;
+  }
+  
+  .mqcb-chip.cnot-target { 
+    /* Circle with cross inside for target */
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: white !important;
+    border: 2px solid #333 !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    min-width: 24px !important;
+    box-shadow: none !important;
+    font-size: 0 !important; /* Hide text */
+  }
+  
+  /* Create the cross using pseudo-elements */
+  .mqcb-chip.cnot-target::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 14px;
+    background: #333;
+  }
+  
+  .mqcb-chip.cnot-target::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 2px;
+    background: #333;
+  }
+  
+  .mqcb-chip.cnot-target:hover {
+    border-color: #000 !important;
+  }
+  
+  .mqcb-chip.cnot-target:hover::before,
+  .mqcb-chip.cnot-target:hover::after {
+    background: #000;
   }
 
-  .mqcb-drop.has-connector::before { 
-    content: ""; 
-    position: absolute; 
-    left: calc(50% - 1px); 
-    top: -50%; 
-    bottom: -50%; 
-    width: 2px; 
-    background: var(--mq-primary); 
-    opacity: .4; 
+  /* CNOT vertical connector line */
+  .mqcb-cnot-line {
+    position: absolute;
+    left: calc(50% - 1px);
+    width: 2px;
+    background: #333;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .mqcb-chip {
+    z-index: 2;
   }
 
   .mqcb-footer .mqcb-trash { 
@@ -525,27 +650,56 @@ class QuantumCircuitElement extends HTMLElement {
     const chip = document.createElement("button");
     chip.className = `mqcb-chip mqcb-g-${g.type.toLowerCase()} ${this.selectedGateId === g.id ? "selected" : ""}`;
     chip.type = "button";
-    chip.textContent = g.type;
+    
+    // Use different symbols for CNOT control and target
+    if (g.type === "CNOT") {
+      const isTarget = g.targets.includes(q);
+      if (isTarget) {
+        chip.textContent = ""; // Cross created with CSS pseudo-elements
+        chip.classList.add("cnot-target");
+        chip.title = "CNOT Target";
+      } else {
+        chip.textContent = ""; // No text for control - just a solid dot
+        chip.classList.add("cnot-control");
+        chip.title = "CNOT Control";
+      }
+    } else {
+      chip.textContent = g.type;
+    }
+    
     chip.setAttribute("data-id", g.id);
     chip.draggable = true;
     chip.addEventListener("click", () => this.onGateClick(g.id));
     chip.addEventListener("dragstart", (e) => this.onGateDragStart(e, g.id));
     chip.addEventListener("dragend", () => this.clearDragHighlights());
 
-    // CNOT connectors: draw control/target markers and vertical line across involved wires
-    if (g.type === "CNOT") {
-      const isTarget = g.targets.includes(q);
-      chip.classList.add(isTarget ? "target" : "control");
-      // draw connector segments on the column by augmenting cells; handled after entire grid build
-      // We rely on having the same GatePlacement present at all involved wires in this column
-      // Vertical line is drawn via CSS ::before stretching within column cells using a data attribute
-      const colCells = Array.from(this.root.querySelectorAll(`.mqcb-cell.mqcb-drop[data-t="${t}"]`));
-      const minQ = Math.min(...[...g.targets, ...(g.controls || [])]);
-      const maxQ = Math.max(...[...g.targets, ...(g.controls || [])]);
-      for (let qi = minQ; qi <= maxQ; qi++) {
-        const c = colCells[qi];
-        c && c.classList.add("has-connector");
-      }
+    // CNOT connectors: draw vertical line between control and target
+    if (g.type === "CNOT" && g.controls && g.controls.length > 0) {
+      // Create a separate line element that spans between control and target
+      setTimeout(() => {
+        if (!g.controls) return;
+        const controlQ = g.controls[0];
+        const targetQ = g.targets[0];
+        const minQ = Math.min(controlQ, targetQ);
+        
+        // Only add line from the top qubit
+        if (q === minQ) {
+          const controlCell = this.root.querySelector(`.mqcb-cell.mqcb-drop[data-q="${controlQ}"][data-t="${t}"]`);
+          const targetCell = this.root.querySelector(`.mqcb-cell.mqcb-drop[data-q="${targetQ}"][data-t="${t}"]`);
+          
+          if (controlCell && targetCell) {
+            const controlRect = controlCell.getBoundingClientRect();
+            const targetRect = targetCell.getBoundingClientRect();
+            const cellRect = controlCell.getBoundingClientRect();
+            
+            const line = document.createElement("div");
+            line.className = "mqcb-cnot-line";
+            line.style.height = `${Math.abs(targetRect.top - controlRect.top)}px`;
+            line.style.top = controlQ < targetQ ? "50%" : `${-(Math.abs(targetRect.top - controlRect.top) - cellRect.height/2)}px`;
+            controlCell.appendChild(line);
+          }
+        }
+      }, 0); // Defer to ensure DOM is ready
     }
 
     return chip;
@@ -554,6 +708,9 @@ class QuantumCircuitElement extends HTMLElement {
   private onGateClick(id: string) {
     this.selectedGateId = this.selectedGateId === id ? null : id;
     this.renderGrid();
+    // Focus the canvas to enable keyboard shortcuts
+    const canvas = this.qs<HTMLElement>(".mqcb-canvas");
+    canvas.focus();
   }
 
   private onGateDragStart(e: DragEvent, id: string) {
@@ -723,10 +880,13 @@ class QuantumCircuitElement extends HTMLElement {
   }
 
   private onCanvasKeyDown(e: KeyboardEvent) {
-    if (e.key === "Delete" || e.key === "Backspace") {
+    // Handle both Delete and Backspace, check key and code for compatibility
+    if (e.key === "Delete" || e.key === "Backspace" || e.code === "Delete" || e.code === "Backspace") {
       if (this.selectedGateId) {
+        e.preventDefault(); // Prevent default backspace behavior
         this.circuit = removeGateById(this.circuit, this.selectedGateId);
         this.clearSelection();
+        this.clearDragHighlights();
         this.renderGrid();
         this.autoRunDebounced();
       }
