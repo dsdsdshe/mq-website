@@ -19,6 +19,7 @@
     "sync:all": "python scripts/sync_all.py"
   },
   "dependencies": {
-    "astro": "^4.10.0"
+    "astro": "^4.10.0",
+    "quantum-circuit": "^0.9.241"
   }
 }

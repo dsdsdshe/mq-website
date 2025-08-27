@@ -1,0 +1,33 @@
+---
+// Lightweight Astro wrapper to register the custom element and render the shell
+import "./circuit/styles.css";
+import { HOME_MESSAGES } from "../locales/home";
+const { lang = 'en', heading = 'Interactive Circuit' } = Astro.props as { lang?: string; heading?: string };
+const t = HOME_MESSAGES[lang as keyof typeof HOME_MESSAGES]?.builder;
+const labels = {
+  qubits: t?.qubits || 'Qubits',
+  run: t?.run || 'Run',
+  results: t?.results || 'Results',
+  measurementProbabilities: t?.measurementProbabilities || 'Measurement Probabilities',
+};
+---
+<section class="mq-circuit-section">
+  <h2 class="mq-circuit-heading">{heading}</h2>
+  <mq-circuit-builder lang={lang} data-label-qubits={labels.qubits} data-label-run={labels.run} data-label-results={labels.results} data-label-probs={labels.measurementProbabilities}></mq-circuit-builder>
+</section>
+
+<script type="module">
+  import "./circuit/QuantumCircuitElement.ts";
+  // Custom element is defined by the imported module; nothing else to do here.
+  // The element attaches its own shadow DOM and manages UI + state.
+  // Keeping this island lightweight avoids shipping a framework runtime.
+  void 0;
+  
+  // In case multiple islands are on page, guard define twice (handled in module too)
+</script>
+
+<style>
+  .mq-circuit-section { margin: 2rem 0; }
+  .mq-circuit-heading { margin: 0 0 1rem; }
+  mq-circuit-builder { display: block; width: 100%; }
+</style>

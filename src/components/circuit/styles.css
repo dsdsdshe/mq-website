@@ -1,0 +1,57 @@
+/* Styles scoped by prefixed classnames (no shadow parts required) */
+:host, mq-circuit-builder { font-family: var(--mq-font-sans); }
+.mqcb-root { border: 1px solid var(--mq-border); border-radius: var(--mq-radius); background: var(--mq-surface-2); box-shadow: var(--mq-shadow); }
+.mqcb-topbar { display: flex; gap: 1rem; align-items: center; justify-content: space-between; padding: .75rem; border-bottom: 1px solid var(--mq-border); }
+.mqcb-palette { display: flex; gap: .5rem; flex-wrap: wrap; }
+.mqcb-gate { border: 1px solid var(--mq-border); background: var(--mq-surface); color: var(--mq-text); border-radius: .5rem; padding: .4rem .6rem; cursor: grab; }
+.mqcb-gate:hover { filter: brightness(1.05); }
+.mqcb-g-h { background: color-mix(in oklab, var(--mq-primary), white 80%); }
+.mqcb-g-x { background: color-mix(in oklab, var(--mq-primary), white 70%); }
+.mqcb-g-z { background: color-mix(in oklab, var(--mq-primary), white 60%); }
+.mqcb-g-cnot { background: color-mix(in oklab, var(--mq-primary), white 50%); }
+
+.mqcb-controls { display: flex; gap: .5rem; align-items: center; }
+.mqcb-label { margin-right: .25rem; color: var(--mq-text-muted); font-size: .9rem; }
+.mqcb-qubits { padding: .35rem .5rem; border-radius: .5rem; border: 1px solid var(--mq-border); background: var(--mq-surface); color: var(--mq-text); }
+.mqcb-run { padding: .45rem .75rem; border-radius: .5rem; border: 1px solid var(--mq-border); background: var(--mq-primary); color: var(--mq-primary-contrast); }
+
+.mqcb-canvas { overflow-x: auto; padding: .75rem; }
+.mqcb-grid { display: grid; grid-template-columns: auto repeat(var(--mqcb-cols, 12), minmax(48px, 1fr)); gap: 4px; align-items: center; }
+.mqcb-row { display: contents; }
+.mqcb-header .mqcb-time { text-align: center; color: var(--mq-text-muted); font-size: .85rem; padding: .25rem 0; }
+.mqcb-cell { min-height: 42px; position: relative; }
+.mqcb-wirelabel { color: var(--mq-text-muted); font-size: .9rem; padding: .25rem .5rem; }
+.mqcb-drop { background: var(--mq-surface); border: 1px dashed var(--mq-border); border-radius: .5rem; }
+.mqcb-drop.over.valid { outline: 2px solid color-mix(in oklab, var(--mq-primary), white 35%); }
+.mqcb-drop.over.invalid { outline: 2px solid oklch(65% 0.22 25); }
+.mqcb-drop.maybe { background-image: linear-gradient(45deg, transparent 35%, color-mix(in oklab, var(--mq-primary), white 85%) 35%, color-mix(in oklab, var(--mq-primary), white 85%) 65%, transparent 65%); background-size: 12px 12px; }
+
+.mqcb-wire { pointer-events: none; position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px; background: var(--mq-border); }
+
+.mqcb-chip { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 1px solid var(--mq-border); border-radius: .4rem; padding: .25rem .5rem; min-width: 28px; background: var(--mq-surface); cursor: grab; }
+.mqcb-chip.selected { box-shadow: 0 0 0 2px color-mix(in oklab, var(--mq-primary), white 50%); }
+.mqcb-chip.control { background: color-mix(in oklab, var(--mq-primary), white 60%); }
+.mqcb-chip.target { background: color-mix(in oklab, var(--mq-primary), white 40%); }
+
+/* Visual vertical connector across involved wires in a column */
+.mqcb-drop.has-connector::before { content: ""; position: absolute; left: calc(50% - 1px); top: -50%; bottom: -50%; width: 2px; background: var(--mq-primary); opacity: .4; }
+
+.mqcb-footer .mqcb-trash { border: 1px dashed var(--mq-border); border-radius: .5rem; background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,.04) 6px, rgba(0,0,0,.04) 12px); min-height: 24px; }
+.mqcb-footer .mqcb-trash.over { outline: 2px solid oklch(65% 0.22 25); }
+
+.mqcb-canvas.selecting-control .mqcb-drop { outline: 1px dashed color-mix(in oklab, var(--mq-primary), white 40%); }
+
+.mqcb-results { border-top: 1px solid var(--mq-border); padding: .75rem; background: var(--mq-surface); border-bottom-left-radius: var(--mq-radius); border-bottom-right-radius: var(--mq-radius); }
+.mqcb-results-header { font-weight: 600; margin-bottom: .5rem; }
+.mqcb-subheading { font-weight: 600; margin: .5rem 0; }
+.mqcb-prob { display: grid; grid-template-columns: 5ch 1fr auto; gap: .5rem; align-items: center; margin: .25rem 0; }
+.mqcb-prob .bar { height: 6px; border-radius: 4px; background: color-mix(in oklab, var(--mq-primary), white 40%); width: var(--w, 1%); }
+.mqcb-prob .val { color: var(--mq-text-muted); font-variant-numeric: tabular-nums; }
+.mqcb-amp { font-family: var(--mq-font-mono); font-size: .9rem; color: var(--mq-text-muted); }
+.mqcb-error { color: oklch(65% 0.22 25); }
+
+.mqcb-toast { position: fixed; right: 1rem; bottom: 1rem; background: var(--mq-surface-2); color: var(--mq-text); border: 1px solid var(--mq-border); padding: .5rem .75rem; border-radius: .5rem; box-shadow: var(--mq-shadow); }
+
+@media (max-width: 960px) {
+  .mqcb-grid { grid-template-columns: auto repeat(var(--mqcb-cols, 8), minmax(44px, 1fr)); }
+}

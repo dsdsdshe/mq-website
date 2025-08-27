@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { DEFAULT_LANG } from "../config/i18n";
 import { HOME_MESSAGES } from "../locales/home";
+import QuantumCircuitBuilder from "../components/QuantumCircuitBuilder.astro";
 import { REPO_URL } from "../config/site";
 const lang = DEFAULT_LANG;
 const t = HOME_MESSAGES[lang];
@@ -42,6 +43,10 @@ const BASE = import.meta.env.BASE_URL || '/';
         <p>{f.description}</p>
       </div>
     ))}
+  </section>
+
+  <section>
+    <QuantumCircuitBuilder lang={lang} heading={t.builder?.heading || 'Interactive Circuit'} />
   </section>
 
   <section>

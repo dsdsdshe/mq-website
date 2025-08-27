@@ -20,6 +20,13 @@ export type HomeMessages = {
     linkLabel: string;
     blurbAfterLink: string;
   };
+  builder?: {
+    heading: string;
+    qubits: string;
+    run: string;
+    results: string;
+    measurementProbabilities: string;
+  };
 };
 
 export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
@@ -52,6 +59,13 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
       linkLabel: "documentation portal",
       blurbAfterLink: ".",
     },
+    builder: {
+      heading: "Interactive Circuit",
+      qubits: "Qubits",
+      run: "Run",
+      results: "Results",
+      measurementProbabilities: "Measurement Probabilities",
+    },
   },
   zh: {
     metaDescription: "开源量子计算框架",
@@ -71,6 +85,13 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
       blurbBeforeLink: "在 ",
       linkLabel: "文档中心",
       blurbAfterLink: " 浏览教程、示例与 API 参考。",
+    },
+    builder: {
+      heading: "交互式电路",
+      qubits: "量子比特数",
+      run: "运行",
+      results: "结果",
+      measurementProbabilities: "测量概率",
     },
   },
 };
