@@ -8,11 +8,12 @@ const t = HOME_MESSAGES[lang as keyof typeof HOME_MESSAGES]?.builder;
 const labels = {
   qubits: t?.qubits || 'Qubits',
   measurementProbabilities: t?.measurementProbabilities || 'Measurement Probabilities',
+  stateVector: t?.stateVector || 'State Vector',
 };
 ---
 <section class="mq-circuit-section">
   <h2 class="mq-circuit-heading">{heading}</h2>
-  <mq-circuit-builder lang={lang} data-label-qubits={labels.qubits} data-label-probs={labels.measurementProbabilities}></mq-circuit-builder>
+  <mq-circuit-builder lang={lang} data-label-qubits={labels.qubits} data-label-probs={labels.measurementProbabilities} data-label-state={labels.stateVector}></mq-circuit-builder>
 </section>
 
 <script>

@@ -236,6 +236,12 @@ const TEMPLATE_STYLES = /* css */ `
     color: var(--mq-text);
   }
   
+  .mqcb-state-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--mq-border);
+  }
+  
   .mqcb-prob { 
     display: grid; 
     grid-template-columns: 5ch 1fr auto; 
@@ -321,7 +327,10 @@ const TEMPLATE_HTML = /* html */ `
           <div class="mqcb-subheading" data-label="probs">Measurement Probabilities</div>
           <div class="mqcb-problist"></div>
         </div>
-        <div class="mqcb-state"></div>
+        <div class="mqcb-state-section">
+          <div class="mqcb-subheading" data-label="state">State Vector</div>
+          <div class="mqcb-state"></div>
+        </div>
         <div class="mqcb-error" hidden></div>
       </div>
     </div>
@@ -373,11 +382,14 @@ class QuantumCircuitElement extends HTMLElement {
     const labels = {
       qubits: this.getAttribute("data-label-qubits") || this.dataset.labelQubits || "Qubits",
       probs: this.getAttribute("data-label-probs") || this.dataset.labelProbs || "Measurement Probabilities",
+      state: this.getAttribute("data-label-state") || this.dataset.labelState || "State Vector",
     };
     const q = this.root.querySelector<HTMLElement>('[data-label="qubits"]');
     const pr = this.root.querySelector<HTMLElement>('[data-label="probs"]');
+    const st = this.root.querySelector<HTMLElement>('[data-label="state"]');
     if (q) q.textContent = labels.qubits;
     if (pr) pr.textContent = labels.probs;
+    if (st) st.textContent = labels.state;
   }
 
   private bindEvents() {

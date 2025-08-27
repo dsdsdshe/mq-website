@@ -23,8 +23,7 @@ export type HomeMessages = {
   builder?: {
     heading: string;
     qubits: string;
-    run: string;
-    results: string;
+    stateVector: string;
     measurementProbabilities: string;
   };
 };
@@ -62,9 +61,8 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
     builder: {
       heading: "Interactive Circuit",
       qubits: "Qubits",
-      run: "Run",
-      results: "Results",
       measurementProbabilities: "Measurement Probabilities",
+      stateVector: "State Vector",
     },
   },
   zh: {
@@ -89,9 +87,8 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
     builder: {
       heading: "交互式电路",
       qubits: "量子比特数",
-      run: "运行",
-      results: "结果",
       measurementProbabilities: "测量概率",
+      stateVector: "状态向量",
     },
   },
 };
