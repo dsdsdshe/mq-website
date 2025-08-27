@@ -36,22 +36,55 @@ export async function buildAndRun(c: Circuit): Promise<BuildAndRunResult> {
       const gates = Object.values(unique) as any[];
       for (const gp of gates) {
         switch (gp.type) {
+          // Single-qubit gates
           case "H":
             qc.addGate("h", t, gp.targets);
             break;
           case "X":
             qc.addGate("x", t, gp.targets);
             break;
+          case "Y":
+            qc.addGate("y", t, gp.targets);
+            break;
           case "Z":
             qc.addGate("z", t, gp.targets);
             break;
+          case "S":
+            qc.addGate("s", t, gp.targets);
+            break;
+          case "T":
+            qc.addGate("t", t, gp.targets);
+            break;
+          case "RX":
+            // Default to π/4 rotation if no params provided
+            qc.addGate("rx", t, gp.targets, { params: { theta: gp.params?.theta || Math.PI/4 } });
+            break;
+          case "RY":
+            qc.addGate("ry", t, gp.targets, { params: { theta: gp.params?.theta || Math.PI/4 } });
+            break;
+          case "RZ":
+            qc.addGate("rz", t, gp.targets, { params: { phi: gp.params?.phi || Math.PI/4 } });
+            break;
+          // Two-qubit gates
           case "CNOT": {
-            // CNOT is called "cx" in quantum-circuit library
             const target = gp.targets[0];
             const controls = gp.controls || [];
             if (controls.length > 0) {
-              // Wire order for cx: [control, target]
               qc.addGate("cx", t, [controls[0], target]);
+            }
+            break;
+          }
+          case "CZ": {
+            const target = gp.targets[0];
+            const controls = gp.controls || [];
+            if (controls.length > 0) {
+              qc.addGate("cz", t, [controls[0], target]);
+            }
+            break;
+          }
+          case "SWAP": {
+            if (gp.targets.length >= 2) {
+              qc.addGate("swap", t, [gp.targets[0], gp.targets[1]]);
             }
             break;
           }

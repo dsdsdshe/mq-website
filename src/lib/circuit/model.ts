@@ -1,6 +1,6 @@
 // Circuit data model and pure operations
 
-export type GateType = "H" | "X" | "Z" | "CNOT";
+export type GateType = "H" | "X" | "Y" | "Z" | "S" | "T" | "CNOT" | "CZ" | "SWAP" | "RX" | "RY" | "RZ";
 
 export type GatePlacement = {
   type: GateType;

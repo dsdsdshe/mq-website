@@ -85,15 +85,42 @@ const TEMPLATE_STYLES = /* css */ `
     color: white;
     font-weight: 600;
   }
+  .mqcb-g-y { 
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white;
+    font-weight: 600;
+  }
   .mqcb-g-z { 
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     color: white;
     font-weight: 600;
   }
-  .mqcb-g-cnot { 
+  .mqcb-g-s { 
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    color: white;
+    font-weight: 600;
+  }
+  .mqcb-g-t { 
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #333;
+    font-weight: 600;
+  }
+  .mqcb-g-rx, .mqcb-g-ry, .mqcb-g-rz { 
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #333;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+  .mqcb-g-cnot, .mqcb-g-cz { 
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     color: white;
     font-weight: 600;
+  }
+  .mqcb-g-swap { 
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    color: #333;
+    font-weight: 600;
+    font-size: 0.75rem;
   }
 
   .mqcb-controls { 
@@ -223,8 +250,37 @@ const TEMPLATE_STYLES = /* css */ `
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   }
   
+  .mqcb-chip.mqcb-g-y {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  }
+  
   .mqcb-chip.mqcb-g-z {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+  
+  .mqcb-chip.mqcb-g-s {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+  }
+  
+  .mqcb-chip.mqcb-g-t {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #333;
+  }
+  
+  .mqcb-chip.mqcb-g-rx, .mqcb-chip.mqcb-g-ry, .mqcb-chip.mqcb-g-rz {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #333;
+    font-size: 0.8rem;
+  }
+  
+  .mqcb-chip.mqcb-g-cz {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  }
+  
+  .mqcb-chip.mqcb-g-swap {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    color: #333;
+    font-size: 0.7rem;
   }
   
   /* No background for CNOT as it uses control/target specific styles */
@@ -311,9 +367,77 @@ const TEMPLATE_STYLES = /* css */ `
   .mqcb-chip.cnot-target:hover::after {
     background: #000;
   }
+  
+  /* CZ gate - solid dots on both qubits (same size as CNOT control) */
+  .mqcb-chip.cz-dot {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: #333 !important;
+    width: 12px !important;
+    height: 12px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    min-width: 12px !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  .mqcb-chip.cz-dot:hover {
+    background: #000 !important;
+  }
+  
+  /* SWAP gate - X symbols on both qubits (same size as CNOT target) */
+  .mqcb-chip.swap-x {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: white !important;
+    border: 2px solid #333 !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    min-width: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+  }
+  
+  .mqcb-chip.swap-x::before,
+  .mqcb-chip.swap-x::after {
+    content: '';
+    position: absolute;
+    background: #333;
+    transition: background 0.2s;
+  }
+  
+  .mqcb-chip.swap-x::before {
+    width: 14px;
+    height: 2px;
+    transform: rotate(45deg);
+  }
+  
+  .mqcb-chip.swap-x::after {
+    width: 14px;
+    height: 2px;
+    transform: rotate(-45deg);
+  }
+  
+  .mqcb-chip.swap-x:hover {
+    border-color: #000 !important;
+  }
+  
+  .mqcb-chip.swap-x:hover::before,
+  .mqcb-chip.swap-x:hover::after {
+    background: #000;
+  }
 
-  /* CNOT vertical connector line */
-  .mqcb-cnot-line {
+  /* CNOT/CZ/SWAP vertical connector line */
+  .mqcb-cnot-line, .mqcb-cz-line, .mqcb-swap-line {
     position: absolute;
     left: calc(50% - 1px);
     width: 2px;
@@ -536,7 +660,20 @@ class QuantumCircuitElement extends HTMLElement {
   private renderPalette() {
     const pal = this.qs<HTMLDivElement>(".mqcb-palette");
     pal.innerHTML = "";
-    const gates: GateDef[] = [GATE_REGISTRY.H, GATE_REGISTRY.X, GATE_REGISTRY.Z, GATE_REGISTRY.CNOT];
+    const gates: GateDef[] = [
+      GATE_REGISTRY.H, 
+      GATE_REGISTRY.X, 
+      GATE_REGISTRY.Y, 
+      GATE_REGISTRY.Z, 
+      GATE_REGISTRY.S,
+      GATE_REGISTRY.T,
+      GATE_REGISTRY.RX,
+      GATE_REGISTRY.RY,
+      GATE_REGISTRY.RZ,
+      GATE_REGISTRY.CNOT,
+      GATE_REGISTRY.CZ,
+      GATE_REGISTRY.SWAP,
+    ];
     for (const g of gates) {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -651,7 +788,7 @@ class QuantumCircuitElement extends HTMLElement {
     chip.className = `mqcb-chip mqcb-g-${g.type.toLowerCase()} ${this.selectedGateId === g.id ? "selected" : ""}`;
     chip.type = "button";
     
-    // Use different symbols for CNOT control and target
+    // Use different symbols for two-qubit gates
     if (g.type === "CNOT") {
       const isTarget = g.targets.includes(q);
       if (isTarget) {
@@ -663,8 +800,20 @@ class QuantumCircuitElement extends HTMLElement {
         chip.classList.add("cnot-control");
         chip.title = "CNOT Control";
       }
+    } else if (g.type === "CZ") {
+      // CZ has control dots on both qubits
+      chip.textContent = "";
+      chip.classList.add("cz-dot");
+      chip.title = "Controlled-Z";
+    } else if (g.type === "SWAP") {
+      // SWAP has X symbols on both qubits - created with CSS pseudo-elements
+      chip.textContent = "";
+      chip.classList.add("swap-x");
+      chip.title = "SWAP";
     } else {
-      chip.textContent = g.type;
+      // Get label from registry for single-qubit gates
+      const gateDef = GATE_REGISTRY[g.type];
+      chip.textContent = gateDef?.label || g.type;
     }
     
     chip.setAttribute("data-id", g.id);
@@ -673,30 +822,47 @@ class QuantumCircuitElement extends HTMLElement {
     chip.addEventListener("dragstart", (e) => this.onGateDragStart(e, g.id));
     chip.addEventListener("dragend", () => this.clearDragHighlights());
 
-    // CNOT connectors: draw vertical line between control and target
-    if (g.type === "CNOT" && g.controls && g.controls.length > 0) {
-      // Create a separate line element that spans between control and target
+    // Draw vertical lines for two-qubit gates
+    if ((g.type === "CNOT" || g.type === "CZ" || g.type === "SWAP") && 
+        ((g.controls && g.controls.length > 0) || (g.targets && g.targets.length > 1))) {
+      // Create a separate line element that spans between qubits
       setTimeout(() => {
-        if (!g.controls) return;
-        const controlQ = g.controls[0];
-        const targetQ = g.targets[0];
-        const minQ = Math.min(controlQ, targetQ);
+        let q1: number, q2: number;
+        let lineClass: string;
+        
+        if (g.type === "CNOT" && g.controls && g.controls.length > 0) {
+          q1 = g.controls[0];
+          q2 = g.targets[0];
+          lineClass = "mqcb-cnot-line";
+        } else if (g.type === "CZ" && g.controls && g.controls.length > 0) {
+          q1 = g.controls[0];
+          q2 = g.targets[0];
+          lineClass = "mqcb-cz-line";
+        } else if (g.type === "SWAP" && g.targets.length >= 2) {
+          q1 = g.targets[0];
+          q2 = g.targets[1];
+          lineClass = "mqcb-swap-line";
+        } else {
+          return;
+        }
+        
+        const minQ = Math.min(q1, q2);
         
         // Only add line from the top qubit
         if (q === minQ) {
-          const controlCell = this.root.querySelector(`.mqcb-cell.mqcb-drop[data-q="${controlQ}"][data-t="${t}"]`);
-          const targetCell = this.root.querySelector(`.mqcb-cell.mqcb-drop[data-q="${targetQ}"][data-t="${t}"]`);
+          const cell1 = this.root.querySelector(`.mqcb-cell.mqcb-drop[data-q="${q1}"][data-t="${t}"]`);
+          const cell2 = this.root.querySelector(`.mqcb-cell.mqcb-drop[data-q="${q2}"][data-t="${t}"]`);
           
-          if (controlCell && targetCell) {
-            const controlRect = controlCell.getBoundingClientRect();
-            const targetRect = targetCell.getBoundingClientRect();
-            const cellRect = controlCell.getBoundingClientRect();
+          if (cell1 && cell2) {
+            const rect1 = cell1.getBoundingClientRect();
+            const rect2 = cell2.getBoundingClientRect();
+            const cellRect = cell1.getBoundingClientRect();
             
             const line = document.createElement("div");
-            line.className = "mqcb-cnot-line";
-            line.style.height = `${Math.abs(targetRect.top - controlRect.top)}px`;
-            line.style.top = controlQ < targetQ ? "50%" : `${-(Math.abs(targetRect.top - controlRect.top) - cellRect.height/2)}px`;
-            controlCell.appendChild(line);
+            line.className = lineClass;
+            line.style.height = `${Math.abs(rect2.top - rect1.top)}px`;
+            line.style.top = q1 < q2 ? "50%" : `${-(Math.abs(rect2.top - rect1.top) - cellRect.height/2)}px`;
+            cell1.appendChild(line);
           }
         }
       }, 0); // Defer to ensure DOM is ready
@@ -808,6 +974,26 @@ class QuantumCircuitElement extends HTMLElement {
         this.renderGrid();
         this.promptControlWire(t, id, q);
         return;
+      } else if (gateType === "CZ") {
+        // CZ needs two qubits - place first and prompt for second
+        const id = `g_${Math.random().toString(36).slice(2)}`;
+        const candidate: GatePlacement = { type: "CZ", targets: [q], controls: [], id };
+        const valid = validatePlacement(this.circuit, t, candidate).ok;
+        if (!valid) return this.toast("Invalid placement");
+        this.circuit = addGate(this.circuit, t, candidate, { occupyInvolved: false });
+        this.renderGrid();
+        this.promptSecondQubit(t, id, q, "CZ");
+        return;
+      } else if (gateType === "SWAP") {
+        // SWAP needs two qubits - place first and prompt for second
+        const id = `g_${Math.random().toString(36).slice(2)}`;
+        const candidate: GatePlacement = { type: "SWAP", targets: [q], id };
+        const valid = validatePlacement(this.circuit, t, candidate).ok;
+        if (!valid) return this.toast("Invalid placement");
+        this.circuit = addGate(this.circuit, t, candidate, { occupyInvolved: false });
+        this.renderGrid();
+        this.promptSecondQubit(t, id, q, "SWAP");
+        return;
       } else {
         const id = `g_${Math.random().toString(36).slice(2)}`;
         const placement: GatePlacement = { type: gateType, targets: [q], id };
@@ -870,6 +1056,52 @@ class QuantumCircuitElement extends HTMLElement {
         return;
       }
       // Commit occupancy for control
+      this.circuit = addGate(this.circuit, t, updated, { overwrite: true });
+      cleanup();
+      canvas.removeEventListener("click", handler);
+      this.renderGrid();
+      this.autoRunDebounced();
+    };
+    canvas.addEventListener("click", handler);
+  }
+
+  private promptSecondQubit(t: number, gateId: string, firstQ: number, gateType: "CZ" | "SWAP") {
+    // Similar to promptControlWire but for CZ and SWAP gates
+    const canvas = this.qs<HTMLElement>(".mqcb-canvas");
+    canvas.classList.add("selecting-control");
+    const cleanup = () => canvas.classList.remove("selecting-control");
+    this.toast(`Select second qubit for ${gateType}`);
+    const handler = (e: MouseEvent) => {
+      const cell = (e.target as HTMLElement).closest(".mqcb-cell.mqcb-drop") as HTMLElement | null;
+      if (!cell) return;
+      const q = parseInt(cell.dataset.q || "-1", 10);
+      if (q === firstQ) {
+        this.toast("Cannot select the same qubit");
+        return;
+      }
+      // Update the gate with second qubit
+      const gate = this.findGateById(gateId);
+      if (!gate) return;
+      
+      let updated: GatePlacement;
+      if (gateType === "CZ") {
+        // CZ uses controls array for the second qubit
+        updated = { ...gate, controls: [q] };
+      } else {
+        // SWAP uses targets array for both qubits
+        updated = { ...gate, targets: [firstQ, q] };
+      }
+      
+      const valid = validatePlacement(this.circuit, t, updated).ok;
+      if (!valid) {
+        this.toast("Invalid placement");
+        cleanup();
+        canvas.removeEventListener("click", handler);
+        this.circuit = removeGateById(this.circuit, gateId);
+        this.renderGrid();
+        return;
+      }
+      // Commit with both qubits
       this.circuit = addGate(this.circuit, t, updated, { overwrite: true });
       cleanup();
       canvas.removeEventListener("click", handler);
