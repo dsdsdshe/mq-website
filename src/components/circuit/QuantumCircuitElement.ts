@@ -455,9 +455,10 @@ class QuantumCircuitElement extends HTMLElement {
       btn.dataset.gate = g.type;
       btn.title = g.title || g.label;
       btn.addEventListener("dragstart", (e) => {
-        e.dataTransfer?.setData("application/x-mq-gate", g.type);
-        e.dataTransfer?.setData("text/plain", g.type);
-        e.dataTransfer!.effectAllowed = "copy";
+        if (!e.dataTransfer) return;
+        e.dataTransfer.setData("application/x-mq-gate", g.type);
+        e.dataTransfer.setData("text/plain", g.type);
+        e.dataTransfer.effectAllowed = "copy";
       });
       pal.appendChild(btn);
     }
@@ -615,27 +616,28 @@ class QuantumCircuitElement extends HTMLElement {
     const cell = e.currentTarget as HTMLElement;
     const q = parseInt(cell.dataset.q || "-1", 10);
     const t = parseInt(cell.dataset.t || "-1", 10);
-    if (!dt || q < 0 || t < 0) return;
-    const gateType = dt.types.includes("application/x-mq-gate") ? (dt.getData("application/x-mq-gate") as GateType) : null;
-    const moveId = dt.types.includes("application/x-mq-move") ? dt.getData("application/x-mq-move") : null;
-
-    if (gateType || moveId) {
+    
+    if (!dt || q < 0 || t < 0) {
+      return;
+    }
+    
+    // Check if this is a gate drag or a move drag
+    const hasGate = Array.from(dt.types).some(type => type === "application/x-mq-gate" || type === "text/plain");
+    const hasMove = Array.from(dt.types).some(type => type === "application/x-mq-move");
+    
+    if (hasGate || hasMove) {
       e.preventDefault();
-      const temp: GatePlacement | null = gateType
-        ? { type: gateType, targets: [q], id: `temp-${Date.now()}` }
-        : this.findGateById(moveId!);
-
-      if (!temp) return;
-      const placement: GatePlacement = { ...temp, targets: [q] };
-      const ok = validatePlacement(this.circuit, t, placement, moveId || undefined).ok;
-      cell.classList.add(ok ? "valid" : "invalid");
+      
+      // We can't actually read the data during dragover due to browser security
+      // So we just prevent default and add visual feedback
       cell.classList.add("over");
+      cell.classList.add("valid");
     }
   }
 
   private onCellDragLeave(e: DragEvent) {
     const cell = e.currentTarget as HTMLElement;
-    cell.classList.remove("over");
+    cell.classList.remove("over", "valid", "invalid");
   }
 
   private onCellDrop(e: DragEvent) {
@@ -643,10 +645,32 @@ class QuantumCircuitElement extends HTMLElement {
     const cell = e.currentTarget as HTMLElement;
     const q = parseInt(cell.dataset.q || "-1", 10);
     const t = parseInt(cell.dataset.t || "-1", 10);
-    const dt = e.dataTransfer!;
-
-    const gateType = dt.types.includes("application/x-mq-gate") ? (dt.getData("application/x-mq-gate") as GateType) : null;
-    const moveId = dt.types.includes("application/x-mq-move") ? dt.getData("application/x-mq-move") : null;
+    
+    if (!e.dataTransfer || q < 0 || t < 0) return;
+    
+    const dt = e.dataTransfer;
+    
+    // Try to get gate type or move ID from dataTransfer
+    let gateType: GateType | null = null;
+    let moveId: string | null = null;
+    
+    try {
+      // Try to get custom MIME type first
+      const customGate = dt.getData("application/x-mq-gate");
+      if (customGate) {
+        gateType = customGate as GateType;
+      }
+      const customMove = dt.getData("application/x-mq-move");
+      if (customMove) {
+        moveId = customMove;
+      }
+    } catch (e) {
+      // Fallback to text/plain if custom type fails
+      const plainText = dt.getData("text/plain");
+      if (plainText && ["H", "X", "Z", "CNOT"].includes(plainText)) {
+        gateType = plainText as GateType;
+      }
+    }
 
     if (gateType) {
       if (gateType === "CNOT") {
@@ -677,6 +701,7 @@ class QuantumCircuitElement extends HTMLElement {
     }
 
     this.clearSelection();
+    this.clearDragHighlights();
     this.renderGrid();
     this.autoRunDebounced();
   }
@@ -750,6 +775,7 @@ class QuantumCircuitElement extends HTMLElement {
     }
     this.circuit = createEmptyCircuit(n, DEFAULT_COLUMNS);
     this.clearSelection();
+    this.clearDragHighlights();
     this.renderGrid();
     this.autoRunDebounced();
   }
@@ -838,4 +864,4 @@ if (!customElements.get(QuantumCircuitElement.tag)) {
   customElements.define(QuantumCircuitElement.tag, QuantumCircuitElement);
 }
 
-export {};
+export { QuantumCircuitElement };

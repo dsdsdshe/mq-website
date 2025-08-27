@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Quantum Circuit</title>
+</head>
+<body>
+  <h1>Testing Quantum Circuit Builder</h1>
+  
+  <mq-circuit-builder></mq-circuit-builder>
+  
+  <script type="module">
+    import "/src/components/circuit/QuantumCircuitElement.ts";
+    
+    // Test if element is registered
+    setTimeout(() => {
+      const element = document.querySelector('mq-circuit-builder');
+      console.log('Element found:', element);
+      console.log('Custom element defined:', customElements.get('mq-circuit-builder'));
+    }, 100);
+  </script>
+</body>
+</html>
