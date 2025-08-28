@@ -218,10 +218,15 @@
     }
     
     try {
-      if (clickThebeRunInCell(cell)) return;
-      await activateThebe();
-      await waitFor(() => !!cell.querySelector('button.thebelab-run-button'), { timeout: 60000, interval: 100 });
-      clickThebeRunInCell(cell);
+      if (clickThebeRunInCell(cell)) {
+        // If already activated, wait a bit for execution to complete
+        await new Promise(r => setTimeout(r, 500));
+      } else {
+        await activateThebe();
+        await waitFor(() => !!cell.querySelector('button.thebelab-run-button'), { timeout: 60000, interval: 100 });
+        clickThebeRunInCell(cell);
+        await new Promise(r => setTimeout(r, 500));
+      }
     } catch (e) {
       console.warn('Run cell failed:', e);
       updateBannerStatus('error');

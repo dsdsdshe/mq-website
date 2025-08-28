@@ -205,9 +205,19 @@ html[data-theme="dark"] .mq-thebe-banner .mq-text {
 
 /* Show on hover - matching copy button behavior */
 .cell_input:hover .mq-run-btn,
+.cell:hover .mq-run-btn,
 .highlight:hover .mq-run-btn,
+.mq-run-btn:hover,
+.mq-run-btn:focus,
 .mq-run-btn.is-busy {
-  opacity: 1;
+  opacity: 1 !important;
+}
+
+/* Also show when parent containers are hovered (for Thebe-modified DOM) */
+.thebelab-cell:hover .mq-run-btn,
+.jp-InputArea:hover .mq-run-btn,
+.thebelab-input:hover .mq-run-btn {
+  opacity: 1 !important;
 }
 
 /* Hover state - matching copy button style */
@@ -265,8 +275,12 @@ html[data-theme="dark"] .mq-thebe-banner .mq-text {
 /* Visual harmony with copy button when both visible */
 .cell_input:hover .copybtn,
 .cell_input:hover .mq-run-btn,
+.cell:hover .copybtn,
+.cell:hover .mq-run-btn,
 .highlight:hover .copybtn,
-.highlight:hover ~ .mq-run-btn {
+.highlight:hover ~ .mq-run-btn,
+.docutils.container:hover .mq-run-btn,
+.docutils.container:hover .copybtn {
   opacity: 1;
 }
 
