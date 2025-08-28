@@ -27,6 +27,13 @@
     error: 'Failed to start'
   };
 
+  // Centralized SVG icons
+  const Icons = {
+    play: '<svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true"><path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg>',
+    spinner: '<svg viewBox="0 0 24 24" class="mq-icon fa-spin" aria-hidden="true"><path d="M12 2A10 10 0 1 0 22 12h-2a8 8 0 1 1-8-8V2Z" fill="currentColor"/></svg>',
+    check: '<svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg>'
+  };
+
   let thebeBooting = false;
   let thebeReady = false;
 
@@ -160,10 +167,7 @@
       btn.setAttribute('tabindex', '0');
       
       // Use SVG icon for consistency with copy button - hollow triangle
-      btn.innerHTML = `
-        <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
-          <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
-        </svg>`;
+      btn.innerHTML = Icons.play;
       
       // Add click handler
       btn.addEventListener('click', (ev) => {
@@ -211,10 +215,7 @@
       uiBtn.classList.add('is-busy');
       uiBtn.setAttribute('aria-busy', 'true');
       // Change icon to spinner
-      uiBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" class="mq-icon fa-spin" aria-hidden="true">
-          <path d="M12 2A10 10 0 1 0 22 12h-2a8 8 0 1 1-8-8V2Z" fill="currentColor"/>
-        </svg>`;
+      uiBtn.innerHTML = Icons.spinner;
     }
     
     try {
@@ -235,10 +236,7 @@
         uiBtn.classList.remove('is-busy');
         uiBtn.setAttribute('aria-busy', 'false');
         // Restore play icon - hollow triangle
-        uiBtn.innerHTML = `
-          <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
-            <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
-          </svg>`;
+        uiBtn.innerHTML = Icons.play;
       }
     }
   }
@@ -252,10 +250,7 @@
       const runButtons = $all('.mq-run-btn');
       runButtons.forEach(btn => {
         btn.classList.add('is-busy');
-        btn.innerHTML = `
-          <svg viewBox="0 0 24 24" class="mq-icon fa-spin" aria-hidden="true">
-            <path d="M12 2A10 10 0 1 0 22 12h-2a8 8 0 1 1-8-8V2Z" fill="currentColor"/>
-          </svg>`;
+        btn.innerHTML = Icons.spinner;
       });
       
       // Execute cells with a slight delay between each
@@ -266,15 +261,9 @@
         // Update individual button state with checkmark
         if (runButtons[i]) {
           runButtons[i].classList.remove('is-busy');
-          runButtons[i].innerHTML = `
-            <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
-              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>
-            </svg>`;
+          runButtons[i].innerHTML = Icons.check;
           setTimeout(() => {
-            runButtons[i].innerHTML = `
-              <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
-                <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
-              </svg>`;
+            runButtons[i].innerHTML = Icons.play;
           }, 1000);
         }
       }
@@ -286,10 +275,7 @@
       const runButtons = $all('.mq-run-btn');
       runButtons.forEach(btn => {
         btn.classList.remove('is-busy');
-        btn.innerHTML = `
-          <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
-            <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
-          </svg>`;
+        btn.innerHTML = Icons.play;
       });
     }
   }
