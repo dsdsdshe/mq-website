@@ -27,10 +27,7 @@ html:
 
 launch_buttons:
   thebe: true
-  binderhub_url: https://mybinder.org
   notebook_interface: classic
-  repository_url: https://github.com/MindQuantum-HiQ/mq-env
-  branch: main
 
 theme:
   name: sphinx_book_theme
