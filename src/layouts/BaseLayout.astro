@@ -2,6 +2,7 @@
 import "../styles/tokens.css";
 import "../styles/global.css";
 import LanguageSwitcher from "../components/LanguageSwitcher.astro";
+import BrandIcon from "../components/BrandIcon.astro";
 import { NAV_MESSAGES } from "../locales/nav";
 import { stripBase, withBase, pathForLang, detectLang } from "../config/urls";
 import { LANGS, DEFAULT_LANG, type Lang } from "../config/i18n";
@@ -41,7 +42,7 @@ const abs = (href: string) => (Astro.site ? new URL(href, Astro.site).toString()
     <header class="site-header">
       <nav class="nav">
         <a class="brand" href={homeHref}>
-          <img src={`${BASE}favicon.svg`} alt="MindQuantum" width="28" height="28" />
+          <BrandIcon size={28} />
           <span>MindQuantum</span>
         </a>
         <div class="spacer" />
