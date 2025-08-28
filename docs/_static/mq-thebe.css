@@ -37,6 +37,16 @@
   opacity: 0.15;
 }
 
+/* Dark theme: very subtle overlay */
+html[data-theme="dark"] .mq-thebe-banner::before {
+  opacity: 0.05;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--mq-primary), black 50%),
+    transparent 30%
+  );
+}
+
 .mq-thebe-banner .mq-text {
   flex: 1 1 auto;
   color: var(--sb-foreground);
@@ -152,6 +162,15 @@
   animation: pulse 2s infinite;
 }
 
+/* Dark theme: ensure status text is visible but muted */
+html[data-theme="dark"] .thebe-status {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-text {
+  color: rgba(255, 255, 255, 0.65);
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
@@ -231,30 +250,10 @@
   padding: 0.1em;
 }
 
-/* Tooltip - positioned to the left like copy button */
-.mq-run-btn::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  padding: .2em;
-  font-size: .8em;
-  left: -.2em;
-  background: grey;
-  color: white;
-  white-space: nowrap;
-  z-index: 2;
-  border-radius: 2px;
-  transform: translateX(-102%) translateY(0);
-  transition: opacity 0.2s cubic-bezier(0.64, 0.09, 0.08, 1), transform 0.2s cubic-bezier(0.64, 0.09, 0.08, 1);
-  opacity: 0;
-  visibility: hidden;
-}
-
-.mq-run-btn:hover::after {
-  display: block;
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-100%) translateY(0);
-  transition-delay: .5s;
+/* Hide tooltip for run button as well for consistency */
+.mq-run-btn::after,
+.mq-run-btn::before {
+  display: none !important;
 }
 
 /* Adjust position when there's a copy button - place to the left of it */
@@ -306,14 +305,46 @@
   }
 }
 
-/* Dark theme adjustments */
+/* Dark theme adjustments - much darker */
 html[data-theme="dark"] .mq-thebe-banner {
-  background: linear-gradient(
-    135deg,
-    var(--sb-surface-2),
-    color-mix(in oklab, var(--sb-surface-2), var(--sb-background) 30%)
-  );
-  box-shadow: 0 2px 4px rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.15);
+  background: rgba(30, 30, 30, 0.5);
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-left-color: color-mix(in oklab, var(--mq-primary), black 30%);
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-btn {
+  background: rgba(40, 40, 40, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-btn:hover {
+  background: rgba(50, 50, 50, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-btn-primary {
+  background: color-mix(in oklab, var(--mq-primary), black 40%);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: transparent;
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-btn-primary:hover {
+  background: color-mix(in oklab, var(--mq-primary), black 30%);
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  color: white;
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-dismiss {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+html[data-theme="dark"] .mq-thebe-banner .mq-dismiss:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Dark theme - match GitHub's dark mode button colors */
@@ -347,6 +378,12 @@ html[data-theme="dark"] .mq-run-btn.is-busy {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Hide copy button tooltip */
+.copybtn::after,
+.copybtn::before {
+  display: none !important;
 }
 
 /* Print styles */

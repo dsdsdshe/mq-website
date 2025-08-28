@@ -15,7 +15,7 @@
     runAll: '全部运行',
     runCell: '运行此单元',
     starting: '正在启动内核…',
-    ready: '已就绪',
+    ready: '已激活',
     error: '启动失败'
   } : {
     banner: 'This page is runnable in your browser.',
@@ -23,7 +23,7 @@
     runAll: 'Run all',
     runCell: 'Run cell',
     starting: 'Starting kernel…',
-    ready: 'Ready',
+    ready: 'Activated',
     error: 'Failed to start'
   };
 
@@ -153,9 +153,9 @@
       if (input.querySelector('.mq-run-btn')) continue;
       
       const btn = document.createElement('button');
-      btn.className = 'mq-run-btn o-tooltip--left'; // Add tooltip class like copy button
+      btn.className = 'mq-run-btn';
       btn.setAttribute('aria-label', T.runCell);
-      btn.setAttribute('data-tooltip', T.runCell);
+      btn.setAttribute('title', T.runCell); // Add title for native tooltip like copy button
       btn.setAttribute('role', 'button');
       btn.setAttribute('tabindex', '0');
       
