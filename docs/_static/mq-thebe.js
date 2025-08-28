@@ -71,19 +71,47 @@
     const existing = $('.mq-thebe-banner');
     if (!hasCells) { if (existing) existing.remove(); return; }
     if (existing) return;
+    
     const banner = document.createElement('div');
     banner.className = 'mq-thebe-banner';
+    banner.setAttribute('role', 'region');
+    banner.setAttribute('aria-label', 'Thebe interactive controls');
     banner.innerHTML = `
-      <div class="mq-text">${T.banner} <span class="thebe-status" aria-live="polite"></span></div>
-      <div class="mq-actions">
-        <button class="mq-btn mq-btn-primary mq-activate" aria-label="${T.activate}"><i class="fas fa-rocket"></i> ${T.activate}</button>
-        <button class="mq-btn mq-run-all" aria-label="${T.runAll}"><i class="fas fa-play"></i> ${T.runAll}</button>
-        <button class="mq-dismiss" aria-label="Dismiss">✕</button>
+      <div class="mq-text">${T.banner} <span class="thebe-status" aria-live="polite" aria-atomic="true"></span></div>
+      <div class="mq-actions" role="group">
+        <button class="mq-btn mq-btn-primary mq-activate" aria-label="${T.activate}">
+          <i class="fas fa-rocket" aria-hidden="true"></i> ${T.activate}
+        </button>
+        <button class="mq-btn mq-run-all" aria-label="${T.runAll}">
+          <i class="fas fa-play" aria-hidden="true"></i> ${T.runAll}
+        </button>
+        <button class="mq-dismiss" aria-label="Dismiss" title="Dismiss">✕</button>
       </div>`;
+    
     article.insertBefore(banner, article.firstChild);
+    
+    // Add keyboard support
     banner.querySelector('.mq-activate').addEventListener('click', () => activateThebe());
+    banner.querySelector('.mq-activate').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activateThebe();
+      }
+    });
+    
     banner.querySelector('.mq-run-all').addEventListener('click', () => runAll());
-    banner.querySelector('.mq-dismiss').addEventListener('click', () => banner.remove());
+    banner.querySelector('.mq-run-all').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        runAll();
+      }
+    });
+    
+    banner.querySelector('.mq-dismiss').addEventListener('click', () => {
+      banner.style.animation = 'fadeOutUp 0.3s ease-out forwards';
+      setTimeout(() => banner.remove(), 300);
+    });
+    
     updateBannerStatus();
   }
 
@@ -95,6 +123,23 @@
     else if (state === 'error') text = T.error;
     else if (thebeReady) text = `(${T.ready})`;
     el.textContent = text;
+    
+    // Update button states
+    const activateBtn = $('.mq-thebe-banner .mq-activate');
+    const runAllBtn = $('.mq-thebe-banner .mq-run-all');
+    if (activateBtn && runAllBtn) {
+      if (thebeReady) {
+        activateBtn.disabled = true;
+        activateBtn.style.opacity = '0.5';
+        runAllBtn.disabled = false;
+        runAllBtn.style.opacity = '1';
+      } else if (thebeBooting) {
+        activateBtn.disabled = true;
+        runAllBtn.disabled = true;
+        activateBtn.style.opacity = '0.5';
+        runAllBtn.style.opacity = '0.5';
+      }
+    }
   }
 
   function attachRunButtons() {
@@ -106,15 +151,47 @@
       if (cell.closest('.thebe-ignored')) continue;
       const input = cell.querySelector('.cell_input') || cell;
       if (input.querySelector('.mq-run-btn')) continue;
+      
       const btn = document.createElement('button');
-      btn.className = 'mq-run-btn' + (input.querySelector('.copybtn') ? '' : ' mq-no-copy');
+      btn.className = 'mq-run-btn o-tooltip--left'; // Add tooltip class like copy button
       btn.setAttribute('aria-label', T.runCell);
       btn.setAttribute('data-tooltip', T.runCell);
-      btn.innerHTML = '<i class="fas fa-play mq-icon" aria-hidden="true"></i>';
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('tabindex', '0');
+      
+      // Use SVG icon for consistency with copy button - hollow triangle
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
+          <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+        </svg>`;
+      
+      // Add click handler
       btn.addEventListener('click', (ev) => {
-        ev.preventDefault(); ev.stopPropagation();
+        ev.preventDefault();
+        ev.stopPropagation();
         runCell(cell, btn);
       });
+      
+      // Add keyboard support
+      btn.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          ev.stopPropagation();
+          runCell(cell, btn);
+        }
+      });
+      
+      // Add focus management
+      btn.addEventListener('focus', () => {
+        btn.style.opacity = '1';
+      });
+      
+      btn.addEventListener('blur', () => {
+        if (!input.matches(':hover')) {
+          btn.style.opacity = '0';
+        }
+      });
+      
       input.appendChild(btn);
     }
   }
@@ -130,7 +207,16 @@
   }
 
   async function runCell(cell, uiBtn) {
-    if (uiBtn) uiBtn.classList.add('is-busy');
+    if (uiBtn) {
+      uiBtn.classList.add('is-busy');
+      uiBtn.setAttribute('aria-busy', 'true');
+      // Change icon to spinner
+      uiBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" class="mq-icon fa-spin" aria-hidden="true">
+          <path d="M12 2A10 10 0 1 0 22 12h-2a8 8 0 1 1-8-8V2Z" fill="currentColor"/>
+        </svg>`;
+    }
+    
     try {
       if (clickThebeRunInCell(cell)) return;
       await activateThebe();
@@ -140,7 +226,15 @@
       console.warn('Run cell failed:', e);
       updateBannerStatus('error');
     } finally {
-      if (uiBtn) uiBtn.classList.remove('is-busy');
+      if (uiBtn) {
+        uiBtn.classList.remove('is-busy');
+        uiBtn.setAttribute('aria-busy', 'false');
+        // Restore play icon - hollow triangle
+        uiBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
+            <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+          </svg>`;
+      }
     }
   }
 
@@ -148,13 +242,50 @@
     try {
       await activateThebe();
       const runs = $all('button.thebelab-run-button');
-      for (const btn of runs) {
-        btn.click();
-        await new Promise((r) => setTimeout(r, 50));
+      
+      // Visual feedback for batch execution
+      const runButtons = $all('.mq-run-btn');
+      runButtons.forEach(btn => {
+        btn.classList.add('is-busy');
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" class="mq-icon fa-spin" aria-hidden="true">
+            <path d="M12 2A10 10 0 1 0 22 12h-2a8 8 0 1 1-8-8V2Z" fill="currentColor"/>
+          </svg>`;
+      });
+      
+      // Execute cells with a slight delay between each
+      for (let i = 0; i < runs.length; i++) {
+        runs[i].click();
+        await new Promise((r) => setTimeout(r, 100));
+        
+        // Update individual button state with checkmark
+        if (runButtons[i]) {
+          runButtons[i].classList.remove('is-busy');
+          runButtons[i].innerHTML = `
+            <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>
+            </svg>`;
+          setTimeout(() => {
+            runButtons[i].innerHTML = `
+              <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
+                <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+              </svg>`;
+          }, 1000);
+        }
       }
     } catch (e) {
       console.warn('Run all failed:', e);
       updateBannerStatus('error');
+    } finally {
+      // Reset all buttons
+      const runButtons = $all('.mq-run-btn');
+      runButtons.forEach(btn => {
+        btn.classList.remove('is-busy');
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" class="mq-icon" aria-hidden="true">
+            <path d="M8 5v14l11-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+          </svg>`;
+      });
     }
   }
 
@@ -162,10 +293,14 @@
     if (thebeReady) return;
     if (thebeBooting) {
       await waitFor(() => !!document.querySelector('button.thebelab-run-button'), { timeout: 60000, interval: 100 });
-      thebeReady = true; updateBannerStatus('ready');
+      thebeReady = true;
+      updateBannerStatus('ready');
       return;
     }
-    thebeBooting = true; updateBannerStatus('starting');
+    
+    thebeBooting = true;
+    updateBannerStatus('starting');
+    
     try {
       if (typeof window.initThebeSBT === 'function') {
         window.initThebeSBT();
@@ -174,9 +309,22 @@
         if (btn) btn.click();
       }
       await waitFor(() => !!document.querySelector('button.thebelab-run-button'), { timeout: 60000, interval: 100 });
-      thebeReady = true; thebeBooting = false; updateBannerStatus('ready');
+      thebeReady = true;
+      thebeBooting = false;
+      updateBannerStatus('ready');
+      
+      // Add success animation to banner
+      const banner = $('.mq-thebe-banner');
+      if (banner) {
+        banner.style.animation = 'pulse 0.5s ease-out';
+        setTimeout(() => {
+          banner.style.animation = '';
+        }, 500);
+      }
     } catch (e) {
-      thebeBooting = false; thebeReady = false; updateBannerStatus('error');
+      thebeBooting = false;
+      thebeReady = false;
+      updateBannerStatus('error');
       throw e;
     }
   }
@@ -184,9 +332,32 @@
   function init() {
     ensureBanner();
     attachRunButtons();
+    
     // Observe late-loaded content or re-renders (e.g., Thebe bootstrap)
-    const mo = new MutationObserver(() => { attachRunButtons(); ensureBanner(); });
+    const mo = new MutationObserver(() => {
+      attachRunButtons();
+      ensureBanner();
+    });
     mo.observe(document.body, { subtree: true, childList: true });
+    
+    // Add style for fadeOutUp animation
+    if (!document.getElementById('mq-thebe-animations')) {
+      const style = document.createElement('style');
+      style.id = 'mq-thebe-animations';
+      style.textContent = `
+        @keyframes fadeOutUp {
+          from {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          to {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
   if (document.readyState === 'loading') {
