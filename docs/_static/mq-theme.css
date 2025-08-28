@@ -43,19 +43,3 @@ html[data-theme="light"], :root {
 .doc-article-item .article-link { text-decoration: none; color: inherit; }
 .doc-article-head { font-weight: 700; margin-bottom: .25rem; }
 .doc-article-desc { color: var(--sb-foreground-muted); }
-
-/* Thebe integration styling */
-.thebe-launch-button, .thebe-activate-button {
-  background: var(--mq-primary) !important;
-  border: 1px solid color-mix(in oklab, var(--mq-primary), black 15%) !important;
-  color: #fff !important;
-  border-radius: .5rem !important;
-}
-.thebe-launch-button:hover, .thebe-activate-button:hover { filter: brightness(1.05); }
-.thebe-status {
-  color: var(--sb-foreground-muted);
-  font-size: .9em;
-}
-.thebe-cell .cell_input, .thebe-cell pre, .thebe-cell textarea {
-  border-radius: var(--mq-radius);
-}

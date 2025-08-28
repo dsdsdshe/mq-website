@@ -27,7 +27,6 @@ html:
 
 launch_buttons:
   thebe: true
-  notebook_interface: classic
 
 theme:
   name: sphinx_book_theme
@@ -52,6 +51,9 @@ sphinx:
     html_css_files:
       - mq-variables.css
       - mq-theme.css
+      - mq-thebe.css
+    html_js_files:
+      - mq-thebe.js
     thebe_config:
       repository_url: https://github.com/MindQuantum-HiQ/mq-env
       repository_branch: main

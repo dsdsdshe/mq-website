@@ -116,10 +116,22 @@ Tutorial pages are now Thebe-enabled so users can click Run on code cells direct
 - Toggle: A “Launch/Activate” button appears on each tutorial page to initialize Thebe. Once activated, each code cell shows a Run button.
 - Scope: Execution is client-initiated; notebooks do not auto-execute. This keeps builds deterministic and scales better for traffic.
 - Binder env: The repo includes a minimal Binder spec in `.binder/` (requirements + postBuild). Update it to a tested MindQuantum environment.
-- Config: Both `docs/en/_config.yml` and `docs/zh/_config.yml` define `launch_buttons` and `thebe_config`. Set `repository_url` and `branch` to a GitHub repo that contains your Binder environment (often this repo).
+- Config: Both `docs/en/_config.yml` and `docs/zh/_config.yml` enable Thebe via `launch_buttons.thebe: true`, and provide Binder settings under `sphinx.config.thebe_config` (not under `launch_buttons`). Set `repository_url`, `repository_branch`, and `binderhub_url` there to point at the GitHub repo that contains your Binder environment (often this repo). Keeping Binder config only in `thebe_config` hides the "Open in Binder" jump while still using Binder to provision kernels for on-page execution.
 
 Local notes and best practices:
 - Ensure `sphinx-thebe` is installed. If needed, install explicitly: `pip install sphinx-thebe`.
 - Binder cold starts can take minutes; subsequent launches are cached by Binder. Consider pinning wheels and minimizing heavy deps.
 - If MindQuantum/MindSpore require special wheels or channels, prefer a `.binder/Dockerfile` for reproducible, faster starts.
 - Avoid `html.use_thebe: true` with `always_load: true` for large books; keep user-triggered activation to conserve Binder capacity.
+
+### Enhanced UX additions
+
+- Per-cell Run button: Implemented in `docs/_static/mq-thebe.js` and styled by `docs/_static/mq-thebe.css`. It overlays a small “Run” button on Python code cells and notebook cells. On first click, it activates Thebe automatically and then runs the clicked cell.
+- Page banner: A compact banner at the top of tutorial pages advertises that the page is runnable in the browser. It provides “Activate” and “Run all examples” actions and mirrors the built-in Thebe status line.
+- Inclusion: Both assets are registered in `docs/en/_config.yml` and `docs/zh/_config.yml` under `sphinx.config.html_css_files` and `sphinx.config.html_js_files`.
+- Accessibility: Buttons include `aria-label`s; colors use shared tokens for contrast. The overlay avoids the copy button by default and falls back gracefully if Thebe isn’t available on a given page.
+
+Customization & maintenance:
+- To disable the banner: remove `mq-thebe.css`/`mq-thebe.js` from `html_css_files`/`html_js_files` in the two Jupyter Book configs.
+- To limit per-cell buttons: adjust the selector logic in `mq-thebe.js` (function `attachRunButtons`) to match only your preferred patterns (e.g., only `.cell` or only `code.language-python`). Cells inside `.thebe-ignored` are skipped automatically.
+- The script avoids private Thebe internals: it triggers the standard launch button and clicks the cell’s built-in `.thebe-run-button`. This keeps it resilient across Thebe/Jupyter Book updates.

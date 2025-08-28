@@ -1,0 +1,78 @@
+/* MindQuantum — Thebe UX enhancements (per‑cell Run + banner) */
+
+/* Top banner */
+.mq-thebe-banner {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .8rem;
+  margin: .5rem 0 1rem;
+  border: 1px solid var(--sb-border);
+  border-left: 4px solid var(--mq-primary);
+  border-radius: var(--mq-radius);
+  background: var(--sb-surface-2);
+  box-shadow: var(--mq-shadow);
+}
+.mq-thebe-banner .mq-text {
+  flex: 1 1 auto;
+  color: var(--sb-foreground);
+}
+.mq-thebe-banner .mq-actions { display: flex; gap: .5rem; }
+.mq-thebe-banner .mq-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  height: 28px; padding: 0 .6rem; border-radius: 999px;
+  font-size: .875rem; line-height: 1; border: 1px solid var(--sb-border);
+  background: var(--mq-surface);
+  color: var(--sb-foreground);
+  cursor: pointer; box-shadow: var(--mq-shadow);
+}
+.mq-thebe-banner .mq-btn-primary {
+  background: var(--mq-primary);
+  color: var(--mq-primary-contrast);
+  border-color: transparent;
+}
+.mq-thebe-banner .mq-dismiss {
+  margin-left: .25rem; padding: 0 .5rem; height: 26px;
+  background: transparent; border: none; color: var(--sb-foreground-muted);
+  cursor: pointer;
+}
+
+/* Per‑cell Run button overlay */
+/* Position relative to the code input area so it doesn't overlay outputs */
+.bd-article .cell_input.docutils.container { position: relative; }
+.mq-run-btn {
+  position: absolute; bottom: 8px; right: 8px;
+  width: 32px; height: 32px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid color-mix(in oklab, var(--mq-primary), black 12%);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--mq-primary), white 8%), var(--mq-primary));
+  color: var(--mq-primary-contrast);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 20px rgba(0,0,0,.12);
+  cursor: pointer; opacity: .95; transition: transform .12s ease, opacity .12s ease, box-shadow .12s ease;
+  z-index: 5;
+}
+.mq-run-btn:hover { opacity: 1; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 10px 24px rgba(0,0,0,.14); }
+.mq-run-btn:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--mq-primary), white 30%);
+  outline-offset: 2px;
+}
+.mq-run-btn.is-busy { pointer-events: none; opacity: .7; }
+.mq-run-btn .mq-icon { font-size: 14px; line-height: 1; }
+.mq-run-btn[aria-label][data-tooltip]:after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: 38px; right: 0; white-space: nowrap;
+  background: var(--sb-foreground); color: var(--sb-surface);
+  padding: 2px 6px; border-radius: 4px; font-size: 11px; display: none;
+}
+.mq-run-btn:hover:after { display: block; }
+
+/* Adjust position if there is no copy button (smaller right offset) */
+.mq-run-btn.mq-no-copy { right: 8px; }
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .mq-run-btn, .mq-run-btn:hover { transition: none; transform: none; }
+}
+
+/* Minor spacing for Thebe status line when present */
+.thebe-status { margin-left: .25rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
