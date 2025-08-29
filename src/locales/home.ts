@@ -49,7 +49,7 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
       },
       {
         title: "Great Docs",
-        description: "Jupyter Book tutorials with consistent, accessible theming.",
+        description: "Consistent and accessible tutorials that support for live execution.",
       },
     ],
     docs: {
@@ -75,8 +75,8 @@ export const HOME_MESSAGES: Record<Lang, HomeMessages> = {
     },
     features: [
       { title: "高速模拟器", description: "面向科研与教学的一流量子模拟器。" },
-      { title: "友好 API", description: "类 Python 的接口与丰富示例文档。" },
-      { title: "优秀文档", description: "基于 Jupyter Book，风格统一、可读性好。" },
+      { title: "友好 API", description: "优雅的 Python 接口，配以丰富的文档和示例。" },
+      { title: "优秀文档", description: "教程风格统一、可读性好，支持在线运行。" },
     ],
     docs: {
       heading: "文档",
